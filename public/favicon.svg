@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 132 132" role="img" aria-label="SNAP EDGE">
+  <rect width="132" height="132" rx="30" fill="#141414"/>
+  <svg x="18" y="40.5" width="96" height="51" viewBox="-12 -4 128 68">
+    <g transform="skewX(-12)" fill="#B0915E">
+      <polygon points="-6,0 6,0 6,12 -6,12"/>
+      <path d="M62 6H26A10 10 0 0 0 16 16V20A10 10 0 0 0 26 30H46A10 10 0 0 1 56 40V44A10 10 0 0 1 46 54H4" fill="none" stroke="#B0915E" stroke-width="12"/>
+      <polygon points="70,0 82,0 82,60 70,60"/>
+      <polygon points="70,0 112,0 112,12 70,12"/>
+      <polygon points="70,24 104,24 104,36 70,36"/>
+      <polygon points="70,48 112,48 112,60 70,60"/>
+    </g>
+  </svg>
+</svg>

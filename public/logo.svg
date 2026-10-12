@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 39.66" role="img" aria-label="SNAP EDGE">
+  <svg width="74.66" height="39.66" viewBox="-12 -4 128 68">
+    <g transform="skewX(-12)" fill="#141414">
+      <polygon points="-6,0 6,0 6,12 -6,12"/>
+      <path d="M62 6H26A10 10 0 0 0 16 16V20A10 10 0 0 0 26 30H46A10 10 0 0 1 56 40V44A10 10 0 0 1 46 54H4" fill="none" stroke="#141414" stroke-width="12"/>
+      <polygon points="70,0 82,0 82,60 70,60"/>
+      <polygon points="70,0 112,0 112,12 70,12"/>
+      <polygon points="70,24 104,24 104,36 70,36"/>
+      <polygon points="70,48 112,48 112,60 70,60"/>
+    </g>
+  </svg>
+  <svg x="84.58" y="6.61" width="245.42" height="26.44" viewBox="0 38 594 64">
+    <g fill="#141414">
+      <path d="M62 44H16A12 12 0 0 0 4 56V58A12 12 0 0 0 16 70H46A12 12 0 0 1 58 82V84A12 12 0 0 1 46 96H0" fill="none" stroke="#141414" stroke-width="8"/>
+      <polygon points="76,40 84,40 84,100 76,100"/>
+      <polygon points="130,40 138,40 138,100 130,100"/>
+      <polygon points="76,40 87,40 138,100 127,100"/>
+      <polygon points="146,100 174.5,40 185.5,40 214,100 203,100 180,51.58 157,100"/>
+      <polygon points="222,40 230,40 230,100 222,100"/>
+      <path d="M229.5 44H262A12 12 0 0 1 274 56V60A12 12 0 0 1 262 72H229.5" fill="none" stroke="#141414" stroke-width="8"/>
+      <polygon points="318,40 326,40 326,100 318,100"/>
+      <polygon points="318,40 370,40 370,48 318,48"/>
+      <polygon points="318,66 364,66 364,74 318,74"/>
+      <polygon points="318,92 370,92 370,100 318,100"/>
+      <polygon points="384,40 392,40 392,100 384,100"/>
+      <path d="M391.5 44H428A16 16 0 0 1 444 60V80A16 16 0 0 1 428 96H391.5" fill="none" stroke="#141414" stroke-width="8"/>
+      <path d="M528 44H478A12 12 0 0 0 466 56V84A12 12 0 0 0 478 96H512A12 12 0 0 0 524 84V70H498" fill="none" stroke="#141414" stroke-width="8"/>
+      <polygon points="542,40 550,40 550,100 542,100"/>
+      <polygon points="542,40 594,40 594,48 542,48"/>
+      <polygon points="542,66 588,66 588,74 542,74"/>
+      <polygon points="542,92 594,92 594,100 542,100"/>
+    </g>
+  </svg>
+</svg>
