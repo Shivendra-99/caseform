@@ -29,7 +29,7 @@ export default function Home() {
       <div className="flex flex-col w-full">
         <section className="relative w-full bg-gradient-to-b from-surface-card via-canvas-bg to-canvas-bg overflow-hidden pt-space-md pb-space-xl" id="hero-section">
           <div className="max-w-[1360px] mx-auto px-margin md:px-margin-desktop">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg lg:gap-space-xl items-center min-h-[580px]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg lg:gap-space-xl items-center">
               <div className="lg:col-span-6 space-y-space-md z-10">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-card shadow-sm border border-surface-border">
                   <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
@@ -116,7 +116,8 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-                  <div className="absolute bottom-6 left-4 md:left-6 bg-canvas-bg/95 backdrop-blur-md px-3.5 py-2.5 rounded-xl shadow-md border border-surface-border flex items-center gap-2.5 pointer-events-auto">
+                  <div className="absolute bottom-6 inset-x-4 md:inset-x-6 flex flex-wrap items-end justify-between gap-2 pointer-events-none">
+                  <div className="bg-canvas-bg/95 backdrop-blur-md px-3.5 py-2.5 rounded-xl shadow-md border border-surface-border flex items-center gap-2.5 pointer-events-auto">
                     <div className="w-7 h-7 rounded-lg bg-surface-card flex items-center justify-center text-status-verified">
                       <span className="material-symbols-outlined text-[18px]">
                         shield
@@ -131,7 +132,7 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-                  <div className="absolute bottom-6 right-4 md:right-8 hidden sm:flex bg-canvas-bg/95 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-md border border-surface-border items-center gap-2 pointer-events-auto">
+                  <div className="ml-auto hidden sm:flex bg-canvas-bg/95 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-md border border-surface-border items-center gap-2 pointer-events-auto">
                     <span className="w-2 h-2 rounded-full bg-secondary" />
                     <div className="text-left">
                       <p className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">
@@ -141,6 +142,7 @@ export default function Home() {
                         Camera Control Dedicated Bezel
                       </p>
                     </div>
+                  </div>
                   </div>
                 </div>
               </div>

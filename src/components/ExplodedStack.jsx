@@ -103,7 +103,7 @@ export default function ExplodedStack() {
             defaults: { ease: "power2.inOut", duration: 1 },
             scrollTrigger: {
               trigger: root.current,
-              start: "top top",
+              start: "top 106px", // pin just below the fixed 106px header
               end: () => "+=" + window.innerHeight * 4,
               pin: true,
               pinSpacing: true, // parent is flex, where GSAP would default this to false
@@ -149,7 +149,7 @@ export default function ExplodedStack() {
 
   return (
     <section ref={root} data-motion-skip aria-label="What's inside the stack" className="relative w-full bg-surface-card overflow-hidden">
-      <div className="relative h-screen min-h-[600px] max-w-[1360px] mx-auto px-margin md:px-margin-desktop grid grid-cols-[minmax(0,1fr)] grid-rows-[1fr_auto] lg:grid-rows-1 lg:grid-cols-12 items-center gap-space-md lg:gap-space-xl pt-[106px] pb-space-lg">
+      <div className="relative h-[calc(100svh-106px)] min-h-[560px] max-w-[1360px] mx-auto px-margin md:px-margin-desktop grid grid-cols-[minmax(0,1fr)] grid-rows-[1fr_auto] lg:grid-rows-1 lg:grid-cols-12 items-center gap-space-md lg:gap-space-xl py-space-lg">
         <div className="relative h-full min-h-0 lg:order-2 lg:col-span-7 flex items-center justify-center">
           <div className="relative w-[520px] h-[640px] shrink-0 scale-[0.48] sm:scale-[0.62] lg:scale-[0.8] xl:scale-90 2xl:scale-100" aria-hidden="true">
             {LAYERS.map((layer, i) => (
