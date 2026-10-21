@@ -9,3 +9,115 @@
   main > :last-child { margin-bottom: 0 !important; }
 }
 ::-webkit-scrollbar { display: none; }
+
+/* SnapEdge design (header, footer, home, product). Scoped to .se-root so the
+   older Stitch pages are untouched; !important rules override the inline styles. */
+.se-font { font-family: 'Sora', 'Helvetica Neue', Helvetica, sans-serif; color: #222222; font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+.se-root, .se-root * { box-sizing: border-box; }
+.se-root a { color: #222222; text-decoration: none; }
+.se-root a:hover { color: #000000; }
+.se-root [id] { scroll-margin-top: 76px; }
+.se-root .sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.se-root .nav-a:hover { text-decoration: underline; text-underline-offset: 7px; text-decoration-thickness: 1.5px; }
+.se-root .btn-solid:hover { background: #2A2A2A !important; }
+.se-root .btn-white:hover { background: #E6E6E6 !important; }
+.se-root .btn-ghost-dark:hover { background: #FFFFFF !important; color: #000000 !important; }
+.se-root .btn-ghost:hover { background: #222222 !important; color: #FFFFFF !important; }
+.se-root .model-select:hover { background: #F4F4F4 !important; }
+.se-root .model-select:focus-visible { outline: 2px solid #000000; outline-offset: 3px; }
+.se-root .model-search:focus { outline: 2px solid #000000; outline-offset: 1px; }
+.se-root .hero-media { --fan-w: 190px; --fan-step: 1.9px; }
+.se-root .card:hover .card-img { background: #ECECEC !important; }
+.se-root .line:hover { border-color: #222222 !important; }
+.se-root .help:hover { background: #ECECEC !important; }
+.se-root .foot a { color: #555555; }
+.se-root .foot a:hover { color: #000000; }
+.se-root .menu-btn { display: none !important; }
+@media (max-width: 1360px) {
+  .se-root .nav { display: none !important; }
+  .se-root .menu-btn { display: inline-flex !important; }
+}
+@media (max-width: 960px) {
+  .se-root .g12 > * { grid-column: span 12 !important; }
+  .se-root .g12 > .fcol { grid-column: span 6 !important; }
+  .se-root .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .se-root .g2, .se-root .g3 { grid-template-columns: minmax(0, 1fr) !important; }
+  .se-root .hx { font-size: 42px !important; }
+  .se-root .search, .se-root .promo-x { display: none !important; }
+  .se-root .stick { position: static !important; }
+  .se-root .hero-slide { grid-template-columns: minmax(0, 1fr) !important; gap: 16px !important; min-height: 0 !important; padding: 24px 24px 92px !important; }
+  .se-root .hero-media { order: -1; height: 300px !important; --fan-w: 132px; --fan-step: 1.3px; }
+  .se-root .hero-title { font-size: 40px !important; }
+  .se-root .hero-ctrl { left: 24px !important; right: 24px !important; bottom: 20px !important; }
+  .se-root .fan-outer { display: none; }
+}
+@media (max-width: 560px) {
+  .se-root .model-pick { flex: 1 1 100% !important; }
+  .se-root .model-all { margin-left: 0 !important; }
+  .se-root .wrap { padding-left: 16px !important; padding-right: 16px !important; }
+  .se-root .g4, .se-root .spec-row, .se-root .trust { grid-template-columns: minmax(0, 1fr) !important; }
+  .se-root .hx { font-size: 34px !important; }
+  .se-root .hero-slide { gap: 12px !important; padding: 20px 20px 76px !important; }
+  .se-root .hero-media { height: 220px !important; --fan-w: 104px; --fan-step: 1.05px; }
+  .se-root .hero-title { font-size: 32px !important; }
+  .se-root .hero-text { font-size: 15px !important; }
+  .se-root .hero-ctrl { left: 16px !important; right: 16px !important; bottom: 14px !important; }
+  .se-root .pad-card { padding: 24px !important; }
+}
+@media (max-width: 420px) {
+  .se-root .wordmark { display: none; }
+}
+
+/* The hero carousel moves only when motion is welcome. */
+@media (prefers-reduced-motion: reduce) {
+  .se-root .hero-card, .se-root .hero-card * { transition: none !important; }
+}
+
+/* Product card (ProductCard.jsx): photo on soft grey, details on a white panel. On hover the photos
+   cycle, the dots and a "Quick view" hint fade in; touch screens always show the dots. */
+.pcard-img:focus-visible { outline: 2px solid #111111; outline-offset: 2px; }
+.pcard-dots { opacity: 0; transition: opacity 200ms ease; }
+.pcard:hover .pcard-dots, .pcard-img:focus-visible .pcard-dots { opacity: 1; }
+.pcard-qv { position: absolute; left: 50%; bottom: 30px; transform: translate(-50%, 6px); padding: 9px 16px; border-radius: 40px; background: #FFFFFF; color: #111111; font-size: 13px; font-weight: 600; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08); opacity: 0; pointer-events: none; white-space: nowrap; transition: opacity 200ms ease, transform 200ms ease; }
+.pcard-img:hover .pcard-qv, .pcard-img:focus-visible .pcard-qv { opacity: 1; transform: translate(-50%, 0); }
+@media (hover: none) { .pcard-dots { opacity: 1; } .pcard-qv { display: none; } }
+.pcard-add:not([data-added]):hover { background: #F0F0F0 !important; }
+.pcard-name a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.pbadge { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 6px; color: #FFFFFF; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* Quick view (QuickView.jsx): centred modal on desktop, bottom sheet on phones. */
+.qv { margin: auto; padding: 0; border: 0; width: min(1000px, 94vw); max-width: none; max-height: 92dvh; border-radius: 28px; background: #FFFFFF; color: #111111; overflow: auto; }
+.qv::backdrop { background: rgba(0, 0, 0, 0.5); }
+.qv[open] { animation: qv-in 320ms cubic-bezier(0.16, 1, 0.3, 1); }
+.qv[open]::backdrop { animation: fade-in 320ms ease; }
+.qv-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 36px; padding: 28px; }
+@keyframes qv-in { from { opacity: 0; transform: translateY(16px) scale(0.98); } }
+@media (max-width: 760px) {
+  .qv { width: 100vw; max-height: 94dvh; margin: auto 0 0; border-radius: 24px 24px 0 0; }
+  .qv-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 20px 16px 24px; }
+}
+@media (prefers-reduced-motion: reduce) { .qv[open], .qv[open]::backdrop { animation: none; } }
+
+/* Menu drawer (StoreHeader.jsx): a modal <dialog> sliding in from the left. Quiet type (Geist
+   semibold, normal tracking), one list, generous space; the only colour is the black account pill. */
+.menu-drawer { margin: 0; padding: 0; border: 0; width: min(600px, 92vw); max-width: none; height: 100dvh; max-height: none; background: #FFFFFF; color: #111111; border-radius: 0 32px 32px 0; overflow: hidden; font-family: 'Geist', 'Sora', system-ui, sans-serif; }
+.menu-drawer::backdrop { background: rgba(0, 0, 0, 0.45); }
+.menu-drawer .menu-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; font-family: inherit; font-size: 32px; line-height: 1.2; font-weight: 600; letter-spacing: -0.02em; color: #111111; transition: opacity 150ms ease; }
+.menu-drawer .menu-row:hover { opacity: 0.6; }
+.menu-drawer .menu-value { font-size: 15px; font-weight: 500; letter-spacing: 0; color: #666666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.menu-drawer .menu-back:hover { opacity: 0.6; }
+.menu-drawer[open] { animation: drawer-in 380ms cubic-bezier(0.16, 1, 0.3, 1); }
+.menu-drawer[open]::backdrop { animation: fade-in 380ms ease; }
+.menu-drawer[open] .menu-link { animation: link-in 480ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: calc(var(--i) * 40ms + 100ms); }
+@keyframes drawer-in { from { transform: translateX(-100%); } }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes link-in { from { opacity: 0; transform: translateX(-20px); } }
+@media (max-width: 560px) {
+  .menu-drawer .menu-row { font-size: 26px; padding: 10px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-drawer[open], .menu-drawer[open]::backdrop, .menu-drawer[open] .menu-link { animation: none; }
+}
+@media (max-width: 560px) { .pcard-img { aspect-ratio: 1 / 1 !important; } }
+.menu-drawer .menu-social:hover { background: #E9E9E9; }
+.qv :focus-visible, .menu-drawer :focus-visible { outline: 2px solid #111111; outline-offset: 2px; }

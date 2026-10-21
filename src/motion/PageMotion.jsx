@@ -21,13 +21,14 @@ export default function PageMotion() {
     const cards = gsap.utils.toArray("article, [data-reveal] > *", main).filter(free);
 
     // Hide synchronously (before paint) so nothing flashes, then build the heavier stuff later.
-    gsap.set(headings, { autoAlpha: 0 });
-    gsap.set(cards, { autoAlpha: 0, y: 24 });
+    // Opacity only (not visibility), so unrevealed content stays readable and focusable.
+    gsap.set(headings, { opacity: 0 });
+    gsap.set(cards, { opacity: 0, y: 24 });
 
     const reveal = contextSafe(() => {
       firstLoad = false;
       headings.forEach((el) => {
-        gsap.set(el, { autoAlpha: 1 });
+        gsap.set(el, { opacity: 1 });
         SplitText.create(el, {
           type: "lines",
           mask: "lines",
@@ -43,7 +44,7 @@ export default function PageMotion() {
       ScrollTrigger.batch(cards, {
         start: "top 92%",
         once: true,
-        onEnter: (batch) => gsap.to(batch, { autoAlpha: 1, y: 0, stagger: 0.06, overwrite: true }),
+        onEnter: (batch) => gsap.to(batch, { opacity: 1, y: 0, stagger: 0.06, overwrite: true }),
       });
     });
 
@@ -54,7 +55,7 @@ export default function PageMotion() {
     }
     // Route change: the page-enter tween is the priority animation; instantiate
     // SplitText/ScrollTriggers only after it so their setup doesn't spike the same frames.
-    gsap.from(main, { autoAlpha: 0, y: 12, duration: DURATION * 0.6, clearProps: "opacity,visibility,transform", onComplete: reveal });
+    gsap.from(main, { opacity: 0, y: 12, duration: DURATION * 0.6, clearProps: "opacity,transform", onComplete: reveal });
   });
   return null;
 }

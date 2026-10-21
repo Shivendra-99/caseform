@@ -1,985 +1,766 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useStore, PRODUCTS, inr } from "../store.jsx";
-import DeviceModal from "../components/DeviceModal.jsx";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useStore } from "../store.jsx";
+import { MODELS, MODEL_CODES, COLORS, FINISHES, PRODUCTS, inr, modelsText } from "../catalog.js";
+import ProductArt from "../components/ProductArt.jsx";
+import ModelPicker from "../components/ModelPicker.jsx";
+import ProductCard from "../components/ProductCard.jsx";
 
-const THUMBS = [
-  {
-    "alt": "Floating multi-angle showcase",
-    "cls": "w-full h-full object-contain mix-blend-multiply",
-    "src": "https://lh3.googleusercontent.com/aida-public/AB6AXuAzEtG7KN-Ef1Usagz_KxH3idplEFZKBRd_P1_FnUelSmFuNjHrCCr0sgAcC4QFZjfhISAuajtVr_tVy-tf7ABOk699Bo7T_DxhaiT7g97nzVhaqekY3WNx65GGO-brM8_zaigg4Rjj0Y753v11BBZqlg_-D_uA1YIRFQn7HrYgXTFpVflJnTZpCcfiRTXibcQrDc5wrdyZmzG4717LvOXHUWSAsbM72Gw4KP9sXAx2ZaMtros7QBYfmg"
-  },
-  {
-    "alt": "Close up view of the front face of iPhone 17 Pro in clear transparent AeroShield case showing the raised 1.2mm perimeter lip protecting the OLED screen display against flat drops, pure clean high key studio lighting on off-white pedestal",
-    "cls": "w-full h-full object-cover rounded",
-    "src": "https://lh3.googleusercontent.com/aida-public/AB6AXuBHf02wul_TTAnCBpOGnCPCQ6oH03twlgvGoPbrpGRMrg4Rp096DkhLUsILHb8X0JiSnoYvAKAqR47kQP-E4eVsZMFaaJZamVZeCMoStmZT8s1_iCCWwhzMgP7gW1ZNjZp7J1EYsZgS4Cg4W_XKy_VNaHeFvF-VDn-ZFchk3acZgeFdIIXtbO2msxp-H7VRPTHXGV0ZsneAye4YoDi_JjPolkS6qUBP5EsOGtfvE-Zr3jXCLmlzve0ogA"
-  },
-  {
-    "alt": "Macro photography of precision CNC machined titanium camera island bezel guard on transparent AeroShield case surrounding the triple camera lens cluster on iPhone 17 Pro, metallic brushed finish, premium tech texture",
-    "cls": "w-full h-full object-cover rounded",
-    "src": "https://lh3.googleusercontent.com/aida-public/AB6AXuD3q9Lsxw8_Bkoay97Qvhy6i2YxrgyhAwWVJCTa4iW6plk0zRP8FyFaZ8MFU6t5bVY3E-i5GdbMXVxyk10sgkLRL_KEYEyjCvC__ql9JpINgcCRHyFZKXhAEGZ2Frba1lHnON8ECB-DE7J12ik6AhPxbG6CnqZ1YtdGDyxT0Ybae1lMwbyMYfi5VlDqyMzQmF3tuAMk2s0uLXImyZbjXuJeulLhNR20WoHHwGVK0j7SE8Z6R7CEo8GmBw"
-  },
-  {
-    "alt": "Side profile exploded view of iPhone 17 Pro AeroShield case highlighting seamless Action Button tactile cover and micro-perforated acoustic speaker ports cut with surgical accuracy",
-    "cls": "w-full h-full object-cover rounded",
-    "src": "https://lh3.googleusercontent.com/aida-public/AB6AXuCFQQ89nAMQ4YxKO_KBRWiEePiJkU5W4ymO43Rl_Y2wBAN6OQpkgNSbWOH1wpuouUFu2Iziija0Gc_LvifbiSYk8KZObijrDeKRdKXE5HXNHq6eOR72UgQ5WSRQMazpj2NClhaB4HMyypJK4_h5GFkO0Vdu_ASywC-SJz8NeBPv82qK3lGE4O0ZaF3kRfoYhwqU5xGx6QUs8qCblnCyRuM-tr5nBhBYIDrmNs-Rmf8kJEBIB42mMGhzCw"
-  },
-  {
-    "alt": "Minimalist Japanese kraft packaging box for Caseform AeroShield case with holographic anti-counterfeit authenticity seal, clean matte typography and microfiber cloth on grey limestone surface",
-    "cls": "w-full h-full object-cover rounded",
-    "src": "https://lh3.googleusercontent.com/aida-public/AB6AXuA3SNaXHaQVuzn2u3kU4RCAUhM76Fj5uJHt4prLy6EynUb50F58quL1vGCkyS2lNrlx-2_I5gMJwrUIYW294URikylF9SiP1d2RaFtYX9vrMwVJK4fYvI8H1sy6xCnQrpVtTOhwfp_a_ebxAO829W8DPmHxOv4RwTMRxpXrylqTc5Ek5T-e5W8jWsl17qhQ2C2SGtB15VTAvN0XLb_5EPvIlNT18dpmdvZwyHOSj3VSoWtPXiICoT23Fg"
-  }
-];
+const TABS = ["Overview", "Size & Measurement", "Materials & Specs", "Compatibility", "In the Box & Install"];
+const GLASS = PRODUCTS.autoalign;
+const GLASS_WITH_CASE = Math.floor(GLASS.price / 2);
+const LENS = PRODUCTS["lens-glass"];
+const COVERS = Object.keys(PRODUCTS).filter((id) => PRODUCTS[id].kind === "case");
+const BADGES = { best: { label: "Best Seller", bg: "#9A84C8", fg: "#000000" }, new: { label: "New", bg: "#49A594", fg: "#000000" }, sale: { label: "Sale", bg: "#EB0000", fg: "#FFFFFF" } };
+const off = (p) => Math.round(((p.mrp - p.price) / p.mrp) * 100);
 
-// Quick-pick device pills and their display sizes
-const PILLS = {
-  "iPhone 17 Pro": '17 Pro (6.3")',
-  "iPhone 17 Pro Max": '17 Pro Max (6.9")',
-  "iPhone 17": 'iPhone 17 (6.1")',
-  "iPhone 16 Pro": '16 Pro (6.3")',
-};
-const SIZES = { "iPhone 17 Pro": "6.3", "iPhone 17 Pro Max": "6.9", "iPhone 17": "6.1", "iPhone 16 Pro": "6.3" };
+const pill = (on, idle) => ({ pressed: on ? "true" : "false", bg: on ? "#000000" : idle.bg, fg: on ? "#FFFFFF" : "#222222", bd: on ? "#000000" : idle.bd });
 
-// [name, swatch ring colour, swatch fill colour]
-const COLORS = [
-  ["Natural Titanium Ring", "#d6d3ce", "#d6d3ce"],
-  ["Clear Frost Acrylic", "#f1f1f1", "#e8e8e8"],
-  ["Deep Obsidian Black", "#1e1e1e", "#1b1c1c"],
-  ["Desert Titanium Tint", "#c5b59e", "#c8b79d"],
-];
-
-const SPECS = [
-  { title: "Detailed Compatibility & Dimensions", body: (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <ul className="space-y-1.5 list-disc list-inside">
-              <li>
-                Apple iPhone 17 Pro (Screen size: 6.3 inches diagonally)
-              </li>
-              <li>
-                Full compatibility with Camera Control sapphire sensor (precise edge bevel)
-              </li>
-              <li>
-                Accommodates large third-party USB-C 240W braided charging plugs
-              </li>
-            </ul>
-            <ul className="space-y-1.5 list-disc list-inside">
-              <li>
-                {"Compatible with MagSafe Battery Packs, Wallets & Qi2 charging pads"}
-              </li>
-              <li>
-                Camera island lip elevation: 1.5mm above sapphire lenses
-              </li>
-              <li>
-                Front display bezel elevation: 1.2mm above glass screen
-              </li>
-            </ul>
-          </div>
-  ) },
-  { title: "365-Day Zero Yellowing Replacement Guarantee", body: (
-          <p>
-            We stand behind our materials unconditionally. If your AeroShield clear casing shows perceptible yellowing or discoloration within 365 days of invoice date, submit a quick photo to support@caseform.in for an immediate no-questions-asked replacement dispatch.
-          </p>
-  ) },
-  { title: "India Shipping, COD & 7-Day Returns", body: (
-          <p>
-            All orders placed before 3:00 PM IST dispatch the same business day from our Bengaluru fulfillment center. Tier 1 metros receive delivery within 24-48 hours. If the fit does not meet your expectations, schedule an easy 7-day pickup through your account dashboard.
-          </p>
-  ) },
-];
-
+// Cover product page (SnapEdge design): /product?id=<cover id>; an unknown id shows the first cover.
 export default function Product() {
-  const { device, setDevice, addToCart } = useStore();
+  const { devices, setDevices, addForModels } = useStore();
   const navigate = useNavigate();
-  const product = PRODUCTS.aeroshield;
-  const [thumb, setThumb] = useState(0);
-  const [color, setColor] = useState(COLORS[0][0]);
+  const [params] = useSearchParams();
+  const id = COVERS.includes(params.get("id")) ? params.get("id") : COVERS[0];
+  const cover = PRODUCTS[id];
+  const badge = BADGES[cover.badge];
+  const magsafe = /MagSafe/.test(cover.name + cover.feat);
+  // Other covers with photos, for "You may also like".
+  const related = COVERS.filter((x) => x !== id && PRODUCTS[x].img).slice(0, 4);
+  // Several models selected = one of each item per model.
+  const n = devices.length;
+  const fits = n > 1 ? `${n} models` : devices[0];
+  const allFits = modelsText(devices);
   const [qty, setQty] = useState(1);
-  const [added, setAdded] = useState(null); // null | "adding" | "added"
+  const [gi, setGtype] = useState(0);
+  const [tab, setTab] = useState(0);
+  const [glassOn, setGlassOn] = useState(false);
   const [pin, setPin] = useState("");
-  const [pinResult, setPinResult] = useState(null); // null | "invalid" | pincode
-  const [withGlass, setWithGlass] = useState(true);
-  const [kitAdded, setKitAdded] = useState(false);
-  const [openSpec, setOpenSpec] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [pinChecked, setPinChecked] = useState(false);
+  const [wished, setWished] = useState(false);
+  const [added, setAdded] = useState(null); // "bag" | "set" while showing the tick
 
+  const sku = devices.map((d) => `SE-${cover.code}-${MODEL_CODES[MODELS.indexOf(d)]}`).join(", ");
+
+  const gtypes = FINISHES.map((o, i) => ({ name: o.name, ...pill(i === gi, { bg: "#FFFFFF", bd: "#DDDDDD" }), pick: () => setGtype(i) }));
+  const tabs = TABS.map((label, i) => ({ label, pressed: i === tab ? "true" : "false", fg: i === tab ? "#000000" : "#666666", bd: i === tab ? "#000000" : "transparent", pick: () => setTab(i) }));
+  const [tab0, tab1, tab2, tab3, tab4] = [0, 1, 2, 3, 4].map((i) => tab === i);
+
+  const dec = () => setQty((q) => Math.max(1, q - 1));
+  const inc = () => setQty((q) => Math.min(10, q + 1));
+  const toggleGlass = () => setGlassOn((g) => !g);
+  const bundleBd = glassOn ? "#000000" : "#EEEEEE";
+  const total = inr((cover.price + (glassOn ? GLASS_WITH_CASE : 0)) * qty * n);
+  const setPrice = cover.price + GLASS_WITH_CASE + LENS.price;
+
+  const onPin = (e) => {
+    setPin(e.target.value.replace(/[^0-9]/g, "").slice(0, 6));
+    setPinChecked(false);
+  };
+  const checkPin = () => setPinChecked(true);
+  const pinValid = /^[1-9][0-9]{5}$/.test(pin);
+  const pinOk = pinChecked && pinValid;
+  const pinBad = pinChecked && !pinValid;
+  // Delivery estimate: four days out, fixed when the page opens.
+  const [eta] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 4);
+    return d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
+  });
+
+  const flash = (what) => {
+    setAdded(what);
+    setTimeout(() => setAdded((x) => (x === what ? null : x)), 1800);
+  };
+  // The cart applies "glass 50% off with any cover", so glass is added at list price here.
+  const addCaseAndGlass = () => {
+    addForModels(id, qty);
+    if (glassOn) addForModels("autoalign", qty, FINISHES[gi].name);
+  };
   const addToBag = () => {
-    setAdded("adding");
-    setTimeout(() => {
-      addToCart("aeroshield", qty);
-      setAdded("added");
-      setTimeout(() => setAdded(null), 2000);
-    }, 500);
+    addCaseAndGlass();
+    flash("bag");
   };
   const buyNow = () => {
-    addToCart("aeroshield", qty);
+    addCaseAndGlass();
     navigate("/cart");
   };
-  const addKit = () => {
-    addToCart("aeroshield");
-    if (withGlass) addToCart("optiglass");
-    setKitAdded(true);
-    setTimeout(() => setKitAdded(false), 2000);
+  const addSet = () => {
+    addForModels(id, 1);
+    addForModels("autoalign", 1, FINISHES[0].name);
+    addForModels("lens-glass", 1);
+    flash("set");
   };
-  const checkPincode = (e) => {
-    e.preventDefault();
-    setPinResult(/^\d{6}$/.test(pin.trim()) ? pin.trim() : "invalid");
-  };
+  const findModel = () => setTab(3);
 
   return (
-    <main className="w-full pt-[106px] bg-canvas-bg min-h-screen">
-      <div className="flex flex-col w-full">
-        <section className="w-full bg-surface-card py-2.5 px-margin md:px-margin-desktop">
-          <div className="max-w-[1360px] mx-auto flex flex-wrap items-center justify-between gap-space-sm text-body-sm font-body-sm text-on-surface-variant">
-            <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 font-label-md text-label-md">
-              <a className="hover:text-primary transition-colors" href="#">
-                Home
-              </a>
-              <span className="text-outline">
+    <main className="se-root se-font" style={{ background: "#FFFFFF" }}>
+      {/* BREADCRUMB + BUY BOX */}
+      <div>
+        <div className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "0 40px" }}>
+          <nav aria-label="Breadcrumb" style={{ padding: "22px 0" }}>
+            <ol style={{ listStyle: "none", margin: "0", padding: "0", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.08em", textTransform: "uppercase", color: "#666666" }}>
+              <li>
+                <Link to="/" style={{ color: "#666666" }}>
+                  Home
+                </Link>
+              </li>
+              <li aria-hidden="true">
                 /
-              </span>
-              <a className="hover:text-primary transition-colors" href="#">
-                Cases
-              </a>
-              <span className="text-outline">
+              </li>
+              <li>
+                <Link to="/collection" style={{ color: "#666666" }}>
+                  Covers
+                </Link>
+              </li>
+              <li aria-hidden="true">
                 /
-              </span>
-              <a className="hover:text-primary transition-colors" href="#">
-                iPhone 17 Pro
-              </a>
-              <span className="text-outline">
+              </li>
+              <li>
+                {fits}
+              </li>
+              <li aria-hidden="true">
                 /
-              </span>
-              <span className="text-primary font-medium">
-                AeroShield Clear MagSafe
-              </span>
-            </nav>
-            <div className="hidden sm:flex items-center gap-space-md font-label-sm text-label-sm">
-              <span className="flex items-center gap-1 text-status-verified font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-status-verified" />
-                Certified Lab Tested 10ft Drop
-              </span>
-              <span className="text-outline">
-                |
-              </span>
-              <span className="text-on-surface-variant">
-                Model ID: CFM-17P-AS-CLR
-              </span>
-            </div>
-          </div>
-        </section>
-        <section className="w-full py-space-lg md:py-space-xl px-margin md:px-margin-desktop bg-canvas-bg">
-          <div className="max-w-[1360px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
-            <div className="lg:col-span-7 flex flex-col gap-space-lg">
-              <div className="relative bg-surface-card rounded-xl overflow-hidden aspect-[4/3] md:aspect-[5/4] flex items-center justify-center p-6 shadow-sm">
-                <div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-canvas-bg/90 backdrop-blur-md text-primary font-label-sm text-label-sm shadow-sm font-semibold uppercase tracking-wider">
-                    <span className="w-2 h-2 rounded-full bg-secondary" />
-                    Ultra-Clear Non-Yellowing Optical TPU
+              </li>
+              <li aria-current="page" style={{ color: "#222222" }}>
+                {cover.name}
+              </li>
+            </ol>
+          </nav>
+          <div className="g12" style={{ display: "grid", gridTemplateColumns: "repeat(12, minmax(0, 1fr))", columnGap: "24px", rowGap: "40px", alignItems: "start", paddingBottom: "96px" }}>
+            {/* Gallery */}
+            <div className="stick" style={{ gridColumn: "span 7", position: "sticky", top: "100px", minWidth: "0" }}>
+              <div style={{ position: "relative", aspectRatio: "1 / 1", background: "#F3F3F3", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                {badge && (
+                  <span style={{ position: "absolute", top: "20px", left: "20px", height: "28px", padding: "0 12px", borderRadius: "40px", background: badge.bg, color: badge.fg, fontSize: "12px", fontWeight: "700", display: "inline-flex", alignItems: "center" }}>
+                    {badge.label}
                   </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-canvas-bg/85 backdrop-blur-md text-on-surface-variant font-label-sm text-label-sm shadow-sm">
-                    <span className="material-symbols-outlined text-[13px] text-secondary">
-                      bolt
-                    </span>
-                    N52 Neodymium MagSafe Array
-                  </span>
-                </div>
-                <div className="absolute top-4 right-4 z-10">
-                  <button aria-label="Expand view" className="w-9 h-9 rounded-lg bg-canvas-bg/90 backdrop-blur-md hover:bg-canvas-bg flex items-center justify-center text-on-surface hover:text-primary transition-all shadow-sm">
-                    <span className="material-symbols-outlined text-[18px]">
-                      zoom_in
-                    </span>
-                  </button>
-                </div>
-                <img alt="AeroShield Clear MagSafe Case for iPhone 17 Pro multi-angle render" className="w-full h-full object-contain max-h-[500px] transition-transform duration-500 ease-out hover:scale-105" src={THUMBS[thumb].src} />
-                <div className="absolute bottom-4 left-4 z-10 px-2 py-1 rounded bg-primary/80 backdrop-blur-md text-on-primary font-label-sm text-label-sm flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[12px]">
-                    view_in_ar
-                  </span>
-                  <span>
-                    True 1:1 CNC Geometry • 0.33mm Bezel Float
-                  </span>
-                </div>
-              </div>
-              <div className="grid grid-cols-5 gap-2 md:gap-3">
-                {THUMBS.map((t, i) => (
-                  <button key={t.src} aria-label={`Angle ${i + 1}`} className={`group relative aspect-square rounded-lg overflow-hidden p-1 shadow-sm transition-all focus:outline-none ${i === thumb ? "bg-surface-container-high" : "bg-surface-card"}`} onClick={() => setThumb(i)} type="button">
-                    <img alt={t.alt} className={t.cls} src={t.src} />
-                    <span className={`absolute bottom-1 right-1 text-[9px] font-label-sm px-1 rounded bg-canvas-bg/80 ${i === thumb ? "text-primary" : "text-on-surface"}`}>
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                  </button>
-                ))}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-space-sm pt-2">
-                <div className="p-4 rounded-xl bg-surface-card flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-secondary text-[20px]">
-                      lens_blur
-                    </span>
-                  </div>
-                  <div>
-                    <h4 className="font-label-lg text-label-lg font-semibold text-primary">
-                      N52 Neodymium
-                    </h4>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
-                      15W Qi2 rapid alignment with 1.4kg magnetic grip.
-                    </p>
-                  </div>
-                </div>
-                <div className="p-4 rounded-xl bg-surface-card flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-secondary text-[20px]">
-                      shield
-                    </span>
-                  </div>
-                  <div>
-                    <h4 className="font-label-lg text-label-lg font-semibold text-primary">
-                      Bayer Optical Resin
-                    </h4>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
-                      365-day molecular resistance against UV oxidation.
-                    </p>
-                  </div>
-                </div>
-                <div className="p-4 rounded-xl bg-surface-card flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-secondary text-[20px]">
-                      vibration
-                    </span>
-                  </div>
-                  <div>
-                    <h4 className="font-label-lg text-label-lg font-semibold text-primary">
-                      AirShield Cavities
-                    </h4>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
-                      Hexagonal micro-chambers dissipate 10ft corner impacts.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="p-space-lg rounded-xl bg-surface-card space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="font-label-sm text-label-sm font-semibold uppercase tracking-wider text-secondary">
-                    AeroStructure Spec Matrix
-                  </span>
-                  <span className="font-label-sm text-label-sm text-on-surface-variant">
-                    Tolerance: ±0.04mm
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-                  <div className="bg-canvas-bg p-3 rounded-lg">
-                    <div className="font-price-md text-price-md text-primary font-semibold">
-                      18.4g
-                    </div>
-                    <div className="font-label-sm text-label-sm text-on-surface-variant mt-0.5">
-                      Ultralight Mass
-                    </div>
-                  </div>
-                  <div className="bg-canvas-bg p-3 rounded-lg">
-                    <div className="font-price-md text-price-md text-primary font-semibold">
-                      1.15mm
-                    </div>
-                    <div className="font-label-sm text-label-sm text-on-surface-variant mt-0.5">
-                      Profile Thickness
-                    </div>
-                  </div>
-                  <div className="bg-canvas-bg p-3 rounded-lg">
-                    <div className="font-price-md text-price-md text-primary font-semibold">
-                      1.40kg
-                    </div>
-                    <div className="font-label-sm text-label-sm text-on-surface-variant mt-0.5">
-                      Magnetic Tension
-                    </div>
-                  </div>
-                  <div className="bg-canvas-bg p-3 rounded-lg">
-                    <div className="font-price-md text-price-md text-primary font-semibold">
-                      3.0m
-                    </div>
-                    <div className="font-label-sm text-label-sm text-on-surface-variant mt-0.5">
-                      Drop Certified
-                    </div>
-                  </div>
-                </div>
+                )}
+                <ProductArt kind="case" img={cover.img} alt={cover.name} color={COLORS[cover.def]} />
               </div>
             </div>
-            <div className="lg:col-span-5 flex flex-col gap-space-lg">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded bg-primary text-on-primary font-label-sm text-label-sm font-semibold uppercase tracking-wider">
-                    Bestseller
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-surface-card text-status-verified font-label-sm text-label-sm font-medium">
-                    <span className="w-2 h-2 rounded-full bg-status-verified animate-ping" />
-                    {"In Stock & Dispatches Today"}
-                  </span>
+            {/* Buy box */}
+            <div style={{ gridColumn: "span 5", display: "flex", flexDirection: "column", gap: "26px", minWidth: "0" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  {badge && (
+                    <span style={{ height: "28px", padding: "0 12px", borderRadius: "40px", background: badge.bg, color: badge.fg, fontSize: "12px", fontWeight: "700", display: "inline-flex", alignItems: "center" }}>
+                      {badge.label}
+                    </span>
+                  )}
+                  {magsafe && (
+                    <span style={{ height: "28px", padding: "0 12px", borderRadius: "40px", border: "1px solid #DDDDDD", color: "#222222", fontSize: "12px", fontWeight: "600", display: "inline-flex", alignItems: "center" }}>
+                      MagSafe Compatible
+                    </span>
+                  )}
                 </div>
-                <h1 className="font-headline-lg text-headline-lg text-primary tracking-tight font-semibold mt-1">
-                  AeroShield Clear MagSafe Case
+                <div style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#666666" }}>
+                  {fits}{" · Back cover"}
+                </div>
+                <h1 style={{ margin: "0", fontSize: "29px", lineHeight: "1.15", fontWeight: "800", letterSpacing: "-0.02em", color: "#222222" }}>
+                  {cover.name}
                 </h1>
-                <p className="font-body-md text-body-md text-on-surface-variant">
-                  Engineered exclusively for Apple iPhone 17 Pro (6.3-inch Display)
+                <div style={{ display: "flex", flexDirection: "column", gap: "2px", marginTop: "4px" }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "12px", flexWrap: "wrap" }}>
+                    <span style={{ fontSize: "29px", fontWeight: "800", color: "#222222" }}>
+                      {inr(cover.price)}
+                    </span>
+                    <span style={{ fontSize: "15px", color: "#666666" }}>
+                      {"MRP "}
+                      <s>
+                        {inr(cover.mrp)}
+                      </s>
+                    </span>
+                    <span style={{ fontSize: "15px", fontWeight: "700", color: "#EB0000" }}>
+                      {off(cover)}% off
+                    </span>
+                  </div>
+                  <span style={{ fontSize: "13px", color: "#666666" }}>
+                    Inclusive of all taxes
+                  </span>
+                </div>
+                <p style={{ margin: "0", color: "#444444" }}>
+                  {cover.feat}
                 </p>
-                <div className="flex items-center gap-2 pt-1">
-                  <div className="flex items-center text-status-verified">
-                    <span className="material-symbols-outlined text-[18px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                      star
-                    </span>
-                    <span className="material-symbols-outlined text-[18px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                      star
-                    </span>
-                    <span className="material-symbols-outlined text-[18px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                      star
-                    </span>
-                    <span className="material-symbols-outlined text-[18px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                      star
-                    </span>
-                    <span className="material-symbols-outlined text-[18px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                      star
-                    </span>
-                  </div>
-                  <span className="font-label-md text-label-md font-semibold text-primary">
-                    4.9
+                <span style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "11px", letterSpacing: "0.08em", color: "#666666" }}>
+                  {"SKU "}{sku}
+                </span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", borderTop: "1px solid #EEEEEE", paddingTop: "22px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "12px" }}>
+                  <span id="pp-model-label" style={{ fontSize: "14px", fontWeight: "700", color: "#222222" }}>
+                    iPhone model
                   </span>
-                  <a className="font-label-md text-label-md text-secondary hover:underline" href="#reviews-section">
-                    (342 verified reviews)
+                  <a href="#details" onClick={findModel} style={{ fontSize: "13px", color: "#666666", textDecoration: "underline", textUnderlineOffset: "3px" }}>
+                    Find my model
                   </a>
-                  <span className="text-outline">
-                    ·
-                  </span>
-                  <span className="font-label-sm text-label-sm text-on-surface-variant font-medium">
-                    1,420+ bought this month
-                  </span>
                 </div>
+                <ModelPicker value={devices} onChange={setDevices} labelledBy="pp-model-label" describedBy="pp-model-help" />
+                <span id="pp-model-help" style={{ fontSize: "13px", color: "#666666" }}>
+                  {n > 1 ? `You'll get one for each: ${allFits}.` : "Buying for more than one iPhone? Tick several and get one for each."}
+                </span>
               </div>
-              <div className="p-space-md rounded-xl bg-surface-card space-y-3">
-                <div className="flex items-baseline gap-3">
-                  <span className="font-display text-display text-primary font-semibold">
-                    ₹1,499
-                  </span>
-                  <span className="font-headline-sm text-headline-sm text-outline line-through">
-                    ₹2,199
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-status-sale/10 text-status-sale font-label-md text-label-md font-bold">
-                    Save ₹700 (32% OFF)
-                  </span>
-                </div>
-                <div className="font-label-sm text-label-sm text-on-surface-variant">
-                  All prices inclusive of GST. Free Express Air Shipping applied.
-                </div>
-                <div className="p-3 rounded-lg bg-canvas-bg flex items-center justify-between shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="w-7 h-7 rounded bg-secondary text-on-secondary flex items-center justify-center font-bold text-[13px]">
-                      ⚡
+              <div style={{ background: "#F4F4F4", border: `1.5px solid ${bundleBd}`, padding: "20px", display: "flex", flexDirection: "column", gap: "14px" }}>
+                <label style={{ display: "flex", alignItems: "flex-start", gap: "14px", cursor: "pointer" }}>
+                  <input type="checkbox" checked={glassOn} onChange={toggleGlass} style={{ width: "22px", height: "22px", margin: "2px 0 0", accentColor: "#000000", flexShrink: "0", cursor: "pointer" }} />
+                  <span style={{ display: "flex", flexDirection: "column", gap: "4px", flex: "1 1 auto", minWidth: "0" }}>
+                    <span style={{ fontWeight: "700", color: "#222222" }}>
+                      {"Add "}{GLASS.name}
                     </span>
-                    <div>
-                      <div className="font-label-md text-label-md font-semibold text-primary">
-                        Prepaid UPI Instant Discount
-                      </div>
-                      <div className="font-label-sm text-label-sm text-on-surface-variant">
-                        Extra 10% off at final payment step
-                      </div>
+                    <span style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#666666" }}>
+                      50% off with any cover
+                    </span>
+                  </span>
+                  <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px", flexShrink: "0" }}>
+                    <span style={{ fontWeight: "700", color: "#EB0000" }}>
+                      {inr(GLASS_WITH_CASE)}
+                    </span>
+                    <s style={{ fontSize: "13px", color: "#666666" }}>
+                      {inr(GLASS.price)}
+                    </s>
+                  </span>
+                </label>
+                {glassOn && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", paddingLeft: "36px" }}>
+                      {gtypes.map((g, i) => (
+                        <button key={i} type="button" aria-pressed={g.pressed} onClick={g.pick} style={{ height: "36px", padding: "0 14px", borderRadius: "40px", border: `1px solid ${g.bd}`, background: g.bg, color: g.fg, fontFamily: "inherit", fontSize: "12px", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>
+                          {g.name}
+                        </button>
+                      ))}
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-price-md text-price-md font-bold text-secondary">
-                      Pay ₹1,349
-                    </span>
-                  </div>
-                </div>
+                )}
               </div>
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-label-sm text-label-sm font-semibold uppercase tracking-wider text-primary">
-                    1. Confirm Device Model
-                  </span>
-                  <button className="font-label-sm text-label-sm text-secondary hover:underline font-medium" onClick={() => setModalOpen(true)} type="button">
-                    Change Device Model
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <label htmlFor="pp-pin" style={{ fontSize: "14px", fontWeight: "700", color: "#222222" }}>
+                  Check delivery
+                </label>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <input id="pp-pin" type="text" inputMode="numeric" maxLength="6" autoComplete="postal-code" placeholder="Enter 6-digit pincode" value={pin} onChange={onPin} style={{ flex: "1 1 180px", minWidth: "0", height: "48px", padding: "0 20px", borderRadius: "50px", border: "1px solid #DDDDDD", background: "#FFFFFF", fontFamily: "inherit", fontSize: "14px", color: "#222222" }} />
+                  <button type="button" className="btn-ghost" onClick={checkPin} style={{ height: "48px", padding: "0 22px", borderRadius: "50px", border: "1.5px solid #222222", background: "#FFFFFF", color: "#222222", fontFamily: "inherit", fontSize: "14px", fontWeight: "700", cursor: "pointer" }}>
+                    Check
                   </button>
                 </div>
-                <div className="p-3 rounded-lg bg-surface-card flex items-center justify-between shadow-sm">
-                  <div className="flex items-center gap-2.5">
-                    <span className="material-symbols-outlined text-secondary text-[20px]">
-                      check_circle
-                    </span>
-                    <div>
-                      <span className="font-label-lg text-label-lg font-semibold text-primary block">
-                        {device}{SIZES[device] && ` (${SIZES[device]}" display)`}
-                      </span>
-                      <span className="font-label-sm text-label-sm text-on-surface-variant">
-                        {"Precision Cut for Sapphire Camera Control & Action Button"}
+                {pinOk && (
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px" }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: "0", marginTop: "1px" }}>
+                        <path d="M5 12.5l4.5 4.5L19 7.5" />
+                      </svg>
+                      <span style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                        <span style={{ color: "#222222" }}>
+                          <strong>
+                            {"Delivers by "}{eta}
+                          </strong>
+                          {" to "}{pin}
+                        </span>
+                        <span style={{ color: "#666666" }}>
+                          Cash on delivery available · Free shipping on this order
+                        </span>
                       </span>
                     </div>
-                  </div>
-                  <span className="px-2 py-0.5 rounded bg-status-verified/10 text-status-verified font-label-sm text-label-sm font-medium">
-                    100% Fit Assured
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-1">
-                  {Object.entries(PILLS).map(([name, label]) => (
-                    <button key={name} className={`py-2 px-2 rounded-lg font-label-sm text-label-sm font-medium text-center transition-colors ${name === device ? "bg-primary text-on-primary" : "bg-surface-card text-on-surface-variant hover:text-primary"}`} onClick={() => setDevice(name)} type="button">
-                      {label}
-                    </button>
-                  ))}
-                </div>
+                )}
+                {pinBad && (
+                  <span style={{ fontSize: "13px", fontWeight: "600", color: "#EB0000" }}>
+                      Enter a valid 6-digit pincode.
+                    </span>
+                )}
               </div>
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between font-label-sm text-label-sm">
-                  <span className="font-semibold uppercase tracking-wider text-primary">
-                    2. MagSafe Ring Accent
-                  </span>
-                  <span className="text-on-surface font-medium">
-                    {color}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  {COLORS.map(([name, outer, inner]) => (
-                    <button key={name} aria-label={name} aria-pressed={name === color} className={`relative w-9 h-9 rounded-full shadow-sm flex items-center justify-center p-0.5 ${name === color ? "" : "opacity-80 hover:opacity-100"}`} style={{ backgroundColor: outer }} onClick={() => setColor(name)} type="button">
-                      <span className="w-full h-full rounded-full flex items-center justify-center" style={{ backgroundColor: inner }}>
-                        {name === color && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
-                      </span>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", alignItems: "center", height: "56px", border: "1.5px solid #222222", borderRadius: "50px", padding: "0 6px", flexShrink: "0" }}>
+                    <button type="button" aria-label="Decrease quantity" onClick={dec} style={{ width: "44px", height: "44px", border: "0", borderRadius: "50px", background: "transparent", color: "#222222", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                        <path d="M5 12h14" />
+                      </svg>
                     </button>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center bg-surface-card rounded-lg h-12 px-2 shadow-sm">
-                    <button aria-label="Decrease quantity" className="w-8 h-8 flex items-center justify-center text-on-surface hover:text-primary font-bold transition-colors" onClick={() => setQty((q) => Math.max(1, q - 1))} type="button">
-                      -
-                    </button>
-                    <span className="w-10 text-center font-label-lg text-label-lg font-semibold text-primary">
+                    <span aria-live="polite" style={{ minWidth: "28px", textAlign: "center", fontWeight: "700", fontSize: "16px" }}>
                       {qty}
                     </span>
-                    <button aria-label="Increase quantity" className="w-8 h-8 flex items-center justify-center text-on-surface hover:text-primary font-bold transition-colors" onClick={() => setQty((q) => q + 1)} type="button">
-                      +
+                    <button type="button" aria-label="Increase quantity" onClick={inc} style={{ width: "44px", height: "44px", border: "0", borderRadius: "50px", background: "transparent", color: "#222222", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                        <path d="M12 5v14M5 12h14" />
+                      </svg>
                     </button>
                   </div>
-                  <button className="flex-1 h-12 bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-medium rounded-lg flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]" onClick={addToBag} disabled={added === "adding"} type="button">
-                    {added === "adding" ? (
-                      <>
-                        <span className="material-symbols-outlined text-[20px] animate-spin">refresh</span>
-                        <span>ADDING TO BAG...</span>
-                      </>
-                    ) : added === "added" ? (
-                      <>
-                        <span className="material-symbols-outlined text-[20px] text-status-verified">done</span>
-                        <span>ADDED TO BAG!</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="material-symbols-outlined text-[20px]">shopping_bag</span>
-                        <span>ADD TO BAG • {inr(product.price * qty)}</span>
-                      </>
-                    )}
+                  <button type="button" className="btn-ghost" onClick={addToBag} style={{ flex: "1 1 180px", height: "56px", padding: "0 24px", border: "1.5px solid #222222", borderRadius: "50px", background: "#FFFFFF", color: "#222222", fontFamily: "inherit", fontSize: "15px", fontWeight: "700", cursor: "pointer" }}>
+                    {added === "bag" ? "Added ✓" : n > 1 ? `Add to Cart · ${n} models` : "Add to Cart"}
                   </button>
-                  <button aria-label="Save to Wishlist" className="w-12 h-12 rounded-lg bg-surface-card hover:bg-surface-container text-on-surface-variant hover:text-primary flex items-center justify-center shadow-sm transition-colors" type="button">
-                    <span className="material-symbols-outlined text-[20px]">
-                      favorite
-                    </span>
+                  <button type="button" aria-label="Add to wishlist" aria-pressed={wished} onClick={() => setWished((w) => !w)} style={{ width: "56px", height: "56px", border: "1.5px solid #222222", borderRadius: "50px", background: "#FFFFFF", color: "#222222", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: "0" }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill={wished ? "#EB0000" : "none"} stroke={wished ? "#EB0000" : "currentColor"} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M12 20s-7-4.4-9-9.2C1.8 7.6 4 4.5 7.2 4.5c2 0 3.6 1.1 4.8 2.8 1.2-1.7 2.8-2.8 4.8-2.8 3.2 0 5.4 3.1 4.2 6.3C19 15.6 12 20 12 20z" />
+                    </svg>
                   </button>
                 </div>
-                <button className="w-full h-12 bg-secondary hover:bg-secondary-container text-on-secondary font-label-lg text-label-lg font-semibold rounded-lg flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]" onClick={buyNow} type="button">
-                  <span>
-                    EXPRESS BUY NOW (ONE-CLICK)
-                  </span>
-                  <span className="material-symbols-outlined text-[18px]">
-                    arrow_forward
-                  </span>
+                <button type="button" className="btn-solid" onClick={buyNow} style={{ height: "56px", padding: "0 28px", border: "0", borderRadius: "50px", background: "#000000", color: "#FFFFFF", fontFamily: "inherit", fontSize: "15px", fontWeight: "700", cursor: "pointer" }}>
+                  {"Buy Now · "}{total}
                 </button>
               </div>
-              <div className="p-space-md rounded-xl bg-surface-card space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-label-sm text-label-sm font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px] text-secondary">
-                      local_shipping
-                    </span>
-                    Check India Delivery Timeline
-                  </span>
-                  <span className="font-label-sm text-label-sm text-status-verified font-medium">
-                    Express Dispatch
-                  </span>
-                </div>
-                <form className="flex gap-2" onSubmit={checkPincode}>
-                  <input className="flex-1 h-11 px-3 bg-canvas-bg text-on-surface font-body-sm text-body-sm rounded-lg shadow-sm focus:outline-none focus:bg-surface-container-lowest" aria-label="Pincode" inputMode="numeric" maxLength="6" placeholder="Enter 6-digit Pincode (e.g. 560001)" type="text" value={pin} onChange={(e) => setPin(e.target.value)} />
-                  <button className="h-11 px-4 bg-primary text-on-primary font-label-md text-label-md rounded-lg font-medium hover:bg-primary-container transition-colors" type="submit">
-                    Verify
-                  </button>
-                </form>
-                <div className="font-body-sm text-body-sm text-on-surface flex items-center gap-1.5 pt-1" aria-live="polite">
-                  {pinResult === "invalid" ? (
-                    <>
-                      <span className="material-symbols-outlined text-status-sale text-[16px]">error</span>
-                      <span>Please enter a valid 6-digit Indian postal code.</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined text-status-verified text-[16px]">check_circle</span>
-                      {pinResult ? (
-                        <span>
-                          {"Verified: Delivery in "}<strong>2-3 Business Days</strong>{" to "}<strong>Pincode {pinResult}</strong>{" • Free Express Air"}
-                        </span>
-                      ) : (
-                        <span>
-                          {"Estimated Delivery by "}<strong>Thursday</strong>{" to "}<strong>Bengaluru 560001</strong>{" • Free Express Air"}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </div>
-                <div className="flex flex-wrap items-center gap-2 pt-2 font-label-sm text-label-sm text-on-surface-variant">
-                  <span className="px-2 py-0.5 rounded bg-canvas-bg shadow-sm">
-                    COD Available
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-canvas-bg shadow-sm">
-                    BlueDart Air
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-canvas-bg shadow-sm">
-                    Delhivery Express
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-canvas-bg shadow-sm">
-                    7-Day Free Returns
-                  </span>
-                </div>
-              </div>
-              <div className="p-space-md rounded-xl bg-surface-card space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-label-sm text-label-sm font-semibold uppercase tracking-wider text-secondary">
-                    Frequently Paired Together
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-status-sale/10 text-status-sale font-label-sm text-label-sm font-bold">
-                    {"Bundle & Save ₹230"}
-                  </span>
-                </div>
-                <label className="flex items-center gap-3 bg-canvas-bg p-3 rounded-lg shadow-sm cursor-pointer">
-                  <div className="w-16 h-16 rounded-md bg-surface-card overflow-hidden shrink-0 p-1 flex items-center justify-center">
-                    <img alt="OptiGlass 9H Tempered Glass for iPhone 17 Pro" className="w-full h-full object-contain mix-blend-multiply" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbqLsrsRhO_OHeZVUsbU31OaZSbIQm3hc8mP20RqBag-Sf3hiAntVuC5vh0XMvvTS3VNd0KKUdu1vJ43Cvo6H98PE2zw_e3Fg8XryuQSIqdPczfU0cVYLnw5KIrazKJQot02VpxvJ_BZ_jJHy3L58eoQo5mCSp38e0QoYvrPuFBQaBpKUaMNxxxEKyyjEtKlpZjNTxHGekzo0WyJBHiGYaAmv8CLzG2qndA8lthPlD_2bpvBwvTYDNvQ" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-label-md text-label-md font-semibold text-primary truncate">
-                      OptiGlass™ 9H Tempered Glass (2-Pack)
-                    </h4>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant">
-                      With zero-dust alignment tray
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="font-price-md text-price-md font-semibold text-primary">
-                        ₹799
-                      </span>
-                      <span className="font-label-sm text-label-sm text-outline line-through">
-                        ₹1,199
-                      </span>
-                    </div>
-                  </div>
-                  <div className="shrink-0">
-                    <input className="w-5 h-5 accent-primary rounded cursor-pointer" checked={withGlass} onChange={(e) => setWithGlass(e.target.checked)} type="checkbox" />
-                  </div>
-                </label>
-                <div className="flex items-center justify-between pt-1">
-                  <div>
-                    <div className="font-label-sm text-label-sm text-on-surface-variant">
-                      Combined Kit Price:
-                    </div>
-                    <div className="font-price-lg text-price-lg font-bold text-primary">
-                      {withGlass ? (
-                        <>
-                          {"₹2,068 "}
-                          <span className="font-body-sm text-body-sm font-normal text-outline line-through">
-                            ₹2,298
-                          </span>
-                        </>
-                      ) : (
-                        inr(product.price)
-                      )}
-                    </div>
-                  </div>
-                  <button className="h-10 px-4 bg-primary text-on-primary hover:bg-primary-container font-label-md text-label-md font-medium rounded-lg shadow-sm transition-colors" onClick={addKit} type="button">
-                    {kitAdded ? "Added ✓" : "Add Kit to Bag"}
-                  </button>
-                </div>
+              <ul className="trust" style={{ listStyle: "none", margin: "0", padding: "0", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px" }}>
+                <li style={{ background: "#F4F4F4", padding: "14px", display: "flex", flexDirection: "column", gap: "8px", fontSize: "13px", fontWeight: "600", color: "#222222" }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#222222" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M3 7h11v9H3z" />
+                    <path d="M14 10h4l3 3v3h-7z" />
+                    <circle cx="7" cy="18" r="1.8" />
+                    <circle cx="17" cy="18" r="1.8" />
+                  </svg>
+                  Free shipping on ₹499+
+                </li>
+                <li style={{ background: "#F4F4F4", padding: "14px", display: "flex", flexDirection: "column", gap: "8px", fontSize: "13px", fontWeight: "600", color: "#222222" }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#222222" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="2.5" y="6" width="19" height="12" rx="2" />
+                    <circle cx="12" cy="12" r="2.8" />
+                    <path d="M6 9.5v5M18 9.5v5" />
+                  </svg>
+                  Cash on delivery
+                </li>
+                <li style={{ background: "#F4F4F4", padding: "14px", display: "flex", flexDirection: "column", gap: "8px", fontSize: "13px", fontWeight: "600", color: "#222222" }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#222222" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="5" y="11" width="14" height="10" rx="2" />
+                    <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                  </svg>
+                  {"Secure UPI & card payments"}
+                </li>
+              </ul>
+              <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", fontSize: "13px" }}>
+                <Link to="/policies/warranty" style={{ color: "#222222", textDecoration: "underline", textUnderlineOffset: "3px" }}>
+                  {"Warranty & replacement"}
+                </Link>
+                <Link to="/policies/returns" style={{ color: "#222222", textDecoration: "underline", textUnderlineOffset: "3px" }}>
+                  {"Returns & exchanges"}
+                </Link>
               </div>
             </div>
-          </div>
-        </section>
-        <section className="w-full py-space-xl px-margin md:px-margin-desktop bg-surface-card">
-          <div className="max-w-[1360px] mx-auto space-y-space-lg">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-sm">
-              <div>
-                <span className="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-semibold">
-                  {"Substrate & Physics"}
-                </span>
-                <h2 className="font-headline-lg text-headline-lg text-primary font-semibold tracking-tight">
-                  Precision Technical Architecture
-                </h2>
-              </div>
-              <p className="font-body-md text-body-md text-on-surface-variant max-w-md">
-                Every micron calibrated against original CAD geometries supplied directly by Apple component partners.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-space-md">
-              <div className="bg-canvas-bg p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
-                <div className="space-y-space-sm">
-                  <span className="font-label-sm text-label-sm font-semibold uppercase text-secondary">
-                    01 / Optical Chemistry
-                  </span>
-                  <h3 className="font-headline-sm text-headline-sm text-primary font-semibold">
-                    Covestro German Polycarbonate
-                  </h3>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-                    Standard clear cases discolour within 60 days due to exposure to sebum and ultraviolet rays. Caseform utilizes Japanese antioxidant stabilizers with UV absorbents that remain optical water-clear under 500 hours of continuous xenon arc testing.
-                  </p>
-                </div>
-                <div className="pt-4 flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
-                  <span>
-                    Refractive Index: 1.586
-                  </span>
-                  <span className="text-status-verified font-medium">
-                    Zero-Yellow Certified
-                  </span>
-                </div>
-              </div>
-              <div className="bg-canvas-bg p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
-                <div className="space-y-space-sm">
-                  <span className="font-label-sm text-label-sm font-semibold uppercase text-secondary">
-                    02 / Magnetic Ring
-                  </span>
-                  <h3 className="font-headline-sm text-headline-sm text-primary font-semibold">
-                    38-Core Neodymium Ring
-                  </h3>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-                    Embedded inside a dedicated laser-cut groove to ensure complete flushness against your iPhone's matte glass back. Tested to withstand up to 1.4kg of shear force on high-speed in-car MagSafe wireless mounts.
-                  </p>
-                </div>
-                <div className="pt-4 flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
-                  <span>
-                    Qi2 Wireless Support: 15W Full Speed
-                  </span>
-                  <span className="text-secondary font-medium">
-                    Active Lock
-                  </span>
-                </div>
-              </div>
-              <div className="bg-canvas-bg p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
-                <div className="space-y-space-sm">
-                  <span className="font-label-sm text-label-sm font-semibold uppercase text-secondary">
-                    03 / Button Tactility
-                  </span>
-                  <h3 className="font-headline-sm text-headline-sm text-primary font-semibold">
-                    Anodized Aluminum Actuators
-                  </h3>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-                    Say goodbye to mushy TPU button feel. Independent CNC machined buttons mirror Apple's original tactile feedback click with 0.05mm key travel and responsive haptic transmission.
-                  </p>
-                </div>
-                <div className="pt-4 flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
-                  <span>
-                    Independent Action Button
-                  </span>
-                  <span className="text-primary font-medium">
-                    Haptic-Match
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="bg-canvas-bg rounded-xl shadow-sm overflow-hidden p-space-md md:p-space-lg space-y-4">
-              {SPECS.map(({ title, body }, i) => (
-                <div key={title}>
-                  <button className="w-full flex items-center justify-between py-3 text-left font-headline-sm text-headline-sm text-primary font-semibold focus:outline-none" onClick={() => setOpenSpec(openSpec === i ? null : i)} aria-expanded={openSpec === i} type="button">
-                    <span>
-                      {title}
-                    </span>
-                    <span className="material-symbols-outlined text-on-surface-variant transition-transform">
-                      {openSpec === i ? "expand_less" : "expand_more"}
-                    </span>
-                  </button>
-                  {openSpec === i && (
-                    <div className="pt-2 pb-4 text-body-sm text-body-sm text-on-surface-variant space-y-2">
-                      {body}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-        <section className="w-full py-space-xl px-margin md:px-margin-desktop bg-canvas-bg" id="reviews-section">
-          <div className="max-w-[1360px] mx-auto space-y-space-lg">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-headline-lg text-headline-lg font-bold text-primary">
-                    4.9
-                  </span>
-                  <div className="flex text-status-verified">
-                    <span className="material-symbols-outlined text-[20px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                      star
-                    </span>
-                    <span className="material-symbols-outlined text-[20px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                      star
-                    </span>
-                    <span className="material-symbols-outlined text-[20px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                      star
-                    </span>
-                    <span className="material-symbols-outlined text-[20px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                      star
-                    </span>
-                    <span className="material-symbols-outlined text-[20px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                      star
-                    </span>
-                  </div>
-                  <span className="font-body-md text-body-md text-on-surface-variant font-medium">
-                    (342 Verified Ratings)
-                  </span>
-                </div>
-                <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-                  94% of customers rated 5 stars • Ranked #1 Clear MagSafe Case in India
-                </p>
-              </div>
-              <button className="h-11 px-5 bg-surface-card hover:bg-surface-container text-primary font-label-md text-label-md rounded-lg font-semibold shadow-sm transition-colors">
-                Write a Verified Review
-              </button>
-            </div>
-            <div className="p-space-md rounded-xl bg-surface-card grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-              <div className="space-y-1.5 md:col-span-2">
-                <div className="flex items-center gap-3 text-body-sm font-body-sm">
-                  <span className="w-12 text-on-surface-variant">
-                    5 Stars
-                  </span>
-                  <div className="flex-1 h-2 rounded-full bg-surface-container overflow-hidden">
-                    <div className="h-full bg-status-verified w-[92%] rounded-full" />
-                  </div>
-                  <span className="w-8 text-right font-medium text-primary">
-                    92%
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-body-sm font-body-sm">
-                  <span className="w-12 text-on-surface-variant">
-                    4 Stars
-                  </span>
-                  <div className="flex-1 h-2 rounded-full bg-surface-container overflow-hidden">
-                    <div className="h-full bg-status-verified w-[6%] rounded-full" />
-                  </div>
-                  <span className="w-8 text-right font-medium text-primary">
-                    6%
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-body-sm font-body-sm">
-                  <span className="w-12 text-on-surface-variant">
-                    3 Stars
-                  </span>
-                  <div className="flex-1 h-2 rounded-full bg-surface-container overflow-hidden">
-                    <div className="h-full bg-outline w-[1%] rounded-full" />
-                  </div>
-                  <span className="w-8 text-right font-medium text-primary">
-                    1%
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-body-sm font-body-sm">
-                  <span className="w-12 text-on-surface-variant">
-                    2 Stars
-                  </span>
-                  <div className="flex-1 h-2 rounded-full bg-surface-container overflow-hidden">
-                    <div className="h-full bg-outline w-[0.5%] rounded-full" />
-                  </div>
-                  <span className="w-8 text-right font-medium text-primary">
-                    0.5%
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-body-sm font-body-sm">
-                  <span className="w-12 text-on-surface-variant">
-                    1 Star
-                  </span>
-                  <div className="flex-1 h-2 rounded-full bg-surface-container overflow-hidden">
-                    <div className="h-full bg-outline w-[0.5%] rounded-full" />
-                  </div>
-                  <span className="w-8 text-right font-medium text-primary">
-                    0.5%
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-col gap-2 pl-0 md:pl-6">
-                <div className="flex items-center gap-2 text-status-verified font-label-md text-label-md font-semibold">
-                  <span className="material-symbols-outlined text-[18px]">
-                    verified
-                  </span>
-                  <span>
-                    100% Genuine Buyer Feedback
-                  </span>
-                </div>
-                <p className="font-body-sm text-body-sm text-on-surface-variant">
-                  Reviews authenticated via automated post-delivery OTP verification across Indian pin codes.
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-space-md">
-              <div className="p-space-lg rounded-xl bg-surface-card shadow-sm flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex text-status-verified">
-                      <span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                        star
-                      </span>
-                      <span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                        star
-                      </span>
-                      <span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                        star
-                      </span>
-                      <span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                        star
-                      </span>
-                      <span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                        star
-                      </span>
-                    </div>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">
-                      2 days ago
-                    </span>
-                  </div>
-                  <h4 className="font-label-lg text-label-lg font-semibold text-primary">
-                    Apple-level tolerances for real
-                  </h4>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-                    "The magnet lock on my ESR car charger is noticeably stronger than the OEM clear case. The titanium tone on the MagSafe ring perfectly complements the Natural Titanium colorway on the 17 Pro."
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 pt-2">
-                  <div className="w-7 h-7 rounded-full bg-primary text-on-primary font-bold text-[11px] flex items-center justify-center">
-                    AK
-                  </div>
-                  <div>
-                    <div className="font-label-sm text-label-sm font-semibold text-primary flex items-center gap-1">
-                      Aditya K.
-                      <span className="material-symbols-outlined text-[14px] text-status-verified">
-                        verified
-                      </span>
-                    </div>
-                    <div className="font-label-sm text-[11px] text-on-surface-variant">
-                      Bengaluru • Verified Buyer
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="p-space-lg rounded-xl bg-surface-card shadow-sm flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex text-status-verified">
-                      <span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                        star
-                      </span>
-                      <span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                        star
-                      </span>
-                      <span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                        star
-                      </span>
-                      <span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                        star
-                      </span>
-                      <span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                        star
-                      </span>
-                    </div>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">
-                      1 week ago
-                    </span>
-                  </div>
-                  <h4 className="font-label-lg text-label-lg font-semibold text-primary">
-                    Zero yellowing is actually true
-                  </h4>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-                    "Been using Caseform since my iPhone 15 Pro. This new 17 Pro version is even slimmer. The action button click feels genuinely metallic, not like cheap flexible plastic that sticks."
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 pt-2">
-                  <div className="w-7 h-7 rounded-full bg-secondary text-on-secondary font-bold text-[11px] flex items-center justify-center">
-                    RM
-                  </div>
-                  <div>
-                    <div className="font-label-sm text-label-sm font-semibold text-primary flex items-center gap-1">
-                      Rohan M.
-                      <span className="material-symbols-outlined text-[14px] text-status-verified">
-                        verified
-                      </span>
-                    </div>
-                    <div className="font-label-sm text-[11px] text-on-surface-variant">
-                      Mumbai • Verified Buyer
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="p-space-lg rounded-xl bg-surface-card shadow-sm flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex text-status-verified">
-                      <span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                        star
-                      </span>
-                      <span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                        star
-                      </span>
-                      <span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                        star
-                      </span>
-                      <span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                        star
-                      </span>
-                      <span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>
-                        star
-                      </span>
-                    </div>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">
-                      2 weeks ago
-                    </span>
-                  </div>
-                  <h4 className="font-label-lg text-label-lg font-semibold text-primary">
-                    Paired with OptiGlass screen kit
-                  </h4>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-                    "The bundle installation tray made the glass apply with literally zero bubbles in 10 seconds. The case lip doesn't lift the edge of the glass at all. Flawless combo."
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 pt-2">
-                  <div className="w-7 h-7 rounded-full bg-primary text-on-primary font-bold text-[11px] flex items-center justify-center">
-                    PS
-                  </div>
-                  <div>
-                    <div className="font-label-sm text-label-sm font-semibold text-primary flex items-center gap-1">
-                      Priya S.
-                      <span className="material-symbols-outlined text-[14px] text-status-verified">
-                        verified
-                      </span>
-                    </div>
-                    <div className="font-label-sm text-[11px] text-on-surface-variant">
-                      New Delhi • Verified Buyer
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-canvas-bg/95 backdrop-blur-xl p-3 z-40 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] flex items-center justify-between gap-3">
-          <div>
-            <div className="font-price-md text-price-md font-bold text-primary">
-              ₹1,499
-            </div>
-            <div className="font-label-sm text-label-sm text-status-verified font-medium">
-              Free Express Air
-            </div>
-          </div>
-          <div className="flex items-center gap-2 flex-1 max-w-xs">
-            <button className="w-full h-11 bg-primary text-on-primary font-label-md text-label-md font-semibold rounded-lg flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-transform" onClick={addToBag} type="button">
-              <span className="material-symbols-outlined text-[18px]">
-                shopping_bag
-              </span>
-              <span>
-                Add to Bag
-              </span>
-            </button>
           </div>
         </div>
-        {modalOpen && <DeviceModal onClose={() => setModalOpen(false)} />}
       </div>
+
+      {/* DETAILS TABS */}
+      <section id="details" style={{ background: "#FFFFFF" }}>
+        <div className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "96px 40px", display: "flex", flexDirection: "column", gap: "32px" }}>
+          <h2 className="hx" style={{ margin: "0", fontSize: "56px", lineHeight: "1.05", fontWeight: "800", letterSpacing: "-0.03em", color: "#222222" }}>
+            Product details
+          </h2>
+          <div style={{ display: "flex", gap: "4px 32px", flexWrap: "wrap", borderBottom: "1px solid #EEEEEE" }}>
+            {tabs.map((t, i) => (
+              <button key={i} type="button" aria-pressed={t.pressed} onClick={t.pick} style={{ height: "52px", padding: "0", marginBottom: "-1px", border: "0", borderBottom: `2px solid ${t.bd}`, background: "transparent", color: t.fg, fontFamily: "inherit", fontSize: "15px", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap" }}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <div style={{ minHeight: "340px" }}>
+            {tab0 && (
+              <div className="g12" style={{ display: "grid", gridTemplateColumns: "repeat(12, minmax(0, 1fr))", columnGap: "24px", rowGap: "32px" }}>
+                  <div style={{ gridColumn: "span 7", display: "flex", flexDirection: "column", gap: "18px", fontSize: "16px", color: "#444444", maxWidth: "720px" }}>
+                    <p style={{ margin: "0" }}>
+                      {cover.name}{" for "}{allFits}{"."}
+                    </p>
+                    <ul style={{ margin: "0", paddingLeft: "20px", listStyle: "disc", display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {cover.feat.split(" · ").map((f) => (
+                        <li key={f}>
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div style={{ gridColumn: "span 5", background: "#F4F4F4", padding: "28px", display: "flex", flexDirection: "column", gap: "14px", alignSelf: "start" }}>
+                    <div style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#666666" }}>
+                      Pairs best with
+                    </div>
+                    <div style={{ fontSize: "18px", fontWeight: "700", color: "#222222" }}>
+                      {GLASS.name}
+                    </div>
+                    <p style={{ margin: "0", fontSize: "14px", color: "#666666" }}>
+                      Half price when you add it with this case. HD Clear, 28° Privacy or Matte Gaming.
+                    </p>
+                    <Link to="/#glass" className="btn-ghost" style={{ alignSelf: "flex-start", height: "44px", padding: "0 20px", borderRadius: "50px", border: "1.5px solid #222222", color: "#222222", display: "inline-flex", alignItems: "center", gap: "8px", fontWeight: "700", fontSize: "14px" }}>
+                      View Glass
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M5 12h14M13 6l6 6-6 6" />
+                      </svg>
+                    </Link>
+                  </div>
+                </div>
+            )}
+            {tab1 && (
+              <div className="g12" style={{ display: "grid", gridTemplateColumns: "repeat(12, minmax(0, 1fr))", columnGap: "24px", rowGap: "32px", alignItems: "start" }}>
+                  <div style={{ gridColumn: "span 6", background: "#F4F4F4", padding: "24px" }}>
+                    <svg viewBox="0 0 560 360" role="img" aria-label="Dimension drawing of the case: height, width, depth, camera ring and lip height" style={{ width: "100%", height: "auto", display: "block" }}>
+                      <rect x="80" y="30" width="130" height="268" rx="26" fill="#FFFFFF" stroke="#222222" strokeWidth="1.5" />
+                      <rect x="90" y="40" width="56" height="56" rx="14" fill="none" stroke="#222222" strokeWidth="1.2" />
+                      <circle cx="145" cy="170" r="32" fill="none" stroke="#999999" strokeWidth="1.2" />
+                      <g fill="none" stroke="#222222" strokeWidth="1">
+                        <path d="M50 30 V298" />
+                        <path d="M42 30 H58" />
+                        <path d="M42 298 H58" />
+                        <path d="M80 322 H210" />
+                        <path d="M80 314 V330" />
+                        <path d="M210 314 V330" />
+                      </g>
+                      <text x="36" y="164" textAnchor="middle" transform="rotate(-90 36 164)" fontFamily="IBM Plex Mono, monospace" fontSize="11" fill="#222222">
+                        H [Add] mm
+                      </text>
+                      <text x="145" y="350" textAnchor="middle" fontFamily="IBM Plex Mono, monospace" fontSize="11" fill="#222222">
+                        W [Add] mm
+                      </text>
+                      <rect x="330" y="30" width="40" height="268" rx="18" fill="#FFFFFF" stroke="#222222" strokeWidth="1.5" />
+                      <rect x="370" y="44" width="10" height="72" rx="4" fill="#FFFFFF" stroke="#222222" strokeWidth="1.2" />
+                      <g fill="none" stroke="#222222" strokeWidth="1">
+                        <path d="M330 322 H370" />
+                        <path d="M330 314 V330" />
+                        <path d="M370 314 V330" />
+                        <path d="M382 60 H404" />
+                        <path d="M332 200 H404" strokeDasharray="3 3" />
+                      </g>
+                      <text x="350" y="350" textAnchor="middle" fontFamily="IBM Plex Mono, monospace" fontSize="11" fill="#222222">
+                        D [Add] mm
+                      </text>
+                      <text x="410" y="58" fontFamily="IBM Plex Mono, monospace" fontSize="10" fontWeight="600" fill="#222222">
+                        CAMERA RING
+                      </text>
+                      <text x="410" y="72" fontFamily="IBM Plex Mono, monospace" fontSize="10" fill="#666666">
+                        [Add] mm
+                      </text>
+                      <text x="410" y="198" fontFamily="IBM Plex Mono, monospace" fontSize="10" fontWeight="600" fill="#222222">
+                        LIP HEIGHT
+                      </text>
+                      <text x="410" y="212" fontFamily="IBM Plex Mono, monospace" fontSize="10" fill="#666666">
+                        [Add] mm
+                      </text>
+                    </svg>
+                  </div>
+                  <dl style={{ gridColumn: "span 6", margin: "0", borderTop: "1px solid #EEEEEE" }}>
+                    <div className="spec-row" style={{ display: "grid", gridTemplateColumns: "200px minmax(0, 1fr)", gap: "4px 24px", padding: "16px 0", borderBottom: "1px solid #EEEEEE" }}>
+                      <dt style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#666666" }}>
+                        Fits
+                      </dt>
+                      <dd style={{ margin: "0", fontWeight: "600", color: "#222222" }}>
+                        {allFits}
+                      </dd>
+                    </div>
+                    <div className="spec-row" style={{ display: "grid", gridTemplateColumns: "200px minmax(0, 1fr)", gap: "4px 24px", padding: "16px 0", borderBottom: "1px solid #EEEEEE" }}>
+                      <dt style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#666666" }}>
+                        Height × width
+                      </dt>
+                      <dd style={{ margin: "0", fontWeight: "600", color: "#666666" }}>
+                        [Add] × [Add] mm
+                      </dd>
+                    </div>
+                    <div className="spec-row" style={{ display: "grid", gridTemplateColumns: "200px minmax(0, 1fr)", gap: "4px 24px", padding: "16px 0", borderBottom: "1px solid #EEEEEE" }}>
+                      <dt style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#666666" }}>
+                        Depth
+                      </dt>
+                      <dd style={{ margin: "0", fontWeight: "600", color: "#666666" }}>
+                        [Add] mm
+                      </dd>
+                    </div>
+                    <div className="spec-row" style={{ display: "grid", gridTemplateColumns: "200px minmax(0, 1fr)", gap: "4px 24px", padding: "16px 0", borderBottom: "1px solid #EEEEEE" }}>
+                      <dt style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#666666" }}>
+                        Lip above screen
+                      </dt>
+                      <dd style={{ margin: "0", fontWeight: "600", color: "#666666" }}>
+                        [Add] mm
+                      </dd>
+                    </div>
+                    <div className="spec-row" style={{ display: "grid", gridTemplateColumns: "200px minmax(0, 1fr)", gap: "4px 24px", padding: "16px 0", borderBottom: "1px solid #EEEEEE" }}>
+                      <dt style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#666666" }}>
+                        Camera ring height
+                      </dt>
+                      <dd style={{ margin: "0", fontWeight: "600", color: "#666666" }}>
+                        [Add] mm
+                      </dd>
+                    </div>
+                    <div className="spec-row" style={{ display: "grid", gridTemplateColumns: "200px minmax(0, 1fr)", gap: "4px 24px", padding: "16px 0", borderBottom: "1px solid #EEEEEE" }}>
+                      <dt style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#666666" }}>
+                        Weight
+                      </dt>
+                      <dd style={{ margin: "0", fontWeight: "600", color: "#666666" }}>
+                        [Add] g
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+            )}
+            {tab2 && (
+              <dl style={{ margin: "0", maxWidth: "860px", borderTop: "1px solid #EEEEEE" }}>
+                  <div className="spec-row" style={{ display: "grid", gridTemplateColumns: "220px minmax(0, 1fr)", gap: "4px 24px", padding: "16px 0", borderBottom: "1px solid #EEEEEE" }}>
+                    <dt style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#666666" }}>
+                      Material
+                    </dt>
+                    <dd style={{ margin: "0", fontWeight: "600", color: "#666666" }}>
+                      [Add material]
+                    </dd>
+                  </div>
+                  <div className="spec-row" style={{ display: "grid", gridTemplateColumns: "220px minmax(0, 1fr)", gap: "4px 24px", padding: "16px 0", borderBottom: "1px solid #EEEEEE" }}>
+                    <dt style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#666666" }}>
+                      Finish
+                    </dt>
+                    <dd style={{ margin: "0", fontWeight: "600", color: "#666666" }}>
+                      [Add finish]
+                    </dd>
+                  </div>
+                  <div className="spec-row" style={{ display: "grid", gridTemplateColumns: "220px minmax(0, 1fr)", gap: "4px 24px", padding: "16px 0", borderBottom: "1px solid #EEEEEE" }}>
+                    <dt style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#666666" }}>
+                      Drop rating
+                    </dt>
+                    <dd style={{ margin: "0", fontWeight: "600", color: "#666666" }}>
+                      [Add rating]
+                    </dd>
+                  </div>
+                  <div className="spec-row" style={{ display: "grid", gridTemplateColumns: "220px minmax(0, 1fr)", gap: "4px 24px", padding: "16px 0", borderBottom: "1px solid #EEEEEE" }}>
+                    <dt style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#666666" }}>
+                      Charging
+                    </dt>
+                    <dd style={{ margin: "0", fontWeight: "600", color: magsafe ? "#222222" : "#666666" }}>
+                      {magsafe ? "MagSafe compatible" : "[Add charging]"}
+                    </dd>
+                  </div>
+                  <div className="spec-row" style={{ display: "grid", gridTemplateColumns: "220px minmax(0, 1fr)", gap: "4px 24px", padding: "16px 0", borderBottom: "1px solid #EEEEEE" }}>
+                    <dt style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#666666" }}>
+                      Colors
+                    </dt>
+                    <dd style={{ margin: "0", fontWeight: "600", color: "#666666" }}>
+                      [Add colours]
+                    </dd>
+                  </div>
+                  <div className="spec-row" style={{ display: "grid", gridTemplateColumns: "220px minmax(0, 1fr)", gap: "4px 24px", padding: "16px 0", borderBottom: "1px solid #EEEEEE" }}>
+                    <dt style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#666666" }}>
+                      SKU
+                    </dt>
+                    <dd style={{ margin: "0", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontWeight: "600", color: "#222222" }}>
+                      {sku}
+                    </dd>
+                  </div>
+                </dl>
+            )}
+            {tab3 && (
+              <div style={{ display: "flex", flexDirection: "column", maxWidth: "860px" }}>
+                  <p id="pp-compat-help" style={{ margin: "0 0 16px", color: "#666666" }}>
+                    Each case is cut for one model. Pick yours before adding to cart, or tick several to get one for each iPhone.
+                  </p>
+                  <span id="pp-compat-label" className="sr">
+                    iPhone models
+                  </span>
+                  <div style={{ maxWidth: "420px" }}>
+                    <ModelPicker value={devices} onChange={setDevices} labelledBy="pp-compat-label" describedBy="pp-compat-help" />
+                  </div>
+                </div>
+            )}
+            {tab4 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "16px", padding: "20px", border: "1px solid #EEEEEE", maxWidth: "520px" }}>
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#222222" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M3 8l9-4 9 4-9 4-9-4z" />
+                      <path d="M3 8v8l9 4 9-4V8" />
+                      <path d="M12 12v8" />
+                    </svg>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                      <span style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#666666" }}>
+                        In the box
+                      </span>
+                      <span style={{ fontWeight: "700", color: "#222222" }}>
+                        {"1 × "}{cover.name}
+                      </span>
+                    </div>
+                  </div>
+                  <ol className="g3" style={{ listStyle: "none", margin: "0", padding: "0", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "24px" }}>
+                    <li style={{ background: "#F4F4F4", padding: "28px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                      <span style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", color: "#666666" }}>
+                        01
+                      </span>
+                      <span style={{ fontSize: "18px", fontWeight: "700", color: "#222222" }}>
+                        Seat the top
+                      </span>
+                      <span style={{ fontSize: "15px", color: "#666666" }}>
+                        Slide the top of your iPhone in first, with the camera lined up to the cutout.
+                      </span>
+                    </li>
+                    <li style={{ background: "#F4F4F4", padding: "28px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                      <span style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", color: "#666666" }}>
+                        02
+                      </span>
+                      <span style={{ fontSize: "18px", fontWeight: "700", color: "#222222" }}>
+                        Press the corners
+                      </span>
+                      <span style={{ fontSize: "15px", color: "#666666" }}>
+                        Push the bottom corners in until the lip sits flush all the way around the screen.
+                      </span>
+                    </li>
+                    <li style={{ background: "#F4F4F4", padding: "28px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                      <span style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", color: "#666666" }}>
+                        03
+                      </span>
+                      <span style={{ fontSize: "18px", fontWeight: "700", color: "#222222" }}>
+                        Keep it clean
+                      </span>
+                      <span style={{ fontSize: "15px", color: "#666666" }}>
+                        Wipe with a soft, damp cloth. Skip harsh solvents, especially on Clear.
+                      </span>
+                    </li>
+                  </ol>
+                </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* COMPLETE THE SET */}
+      <section style={{ background: "#F4F4F4" }}>
+        <div className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "96px 40px", display: "flex", flexDirection: "column", gap: "40px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            <div style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#666666" }}>
+              Complete the set
+            </div>
+            <h2 className="hx" style={{ margin: "0", fontSize: "56px", lineHeight: "1.05", fontWeight: "800", letterSpacing: "-0.03em", color: "#222222" }}>
+              Case. Glass. Lens.
+            </h2>
+          </div>
+          <div className="g12" style={{ display: "grid", gridTemplateColumns: "repeat(12, minmax(0, 1fr))", columnGap: "24px", rowGap: "32px", alignItems: "center" }}>
+            <div style={{ gridColumn: "span 8", display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap", minWidth: "0" }}>
+              <div style={{ flex: "1 1 180px", minWidth: "0", display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ aspectRatio: "1 / 1", background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <ProductArt kind="case" img={cover.img} color={COLORS[cover.def]} style={{ width: "70%", height: "70%" }} />
+                </div>
+                <div style={{ fontSize: "15px", fontWeight: "700", color: "#222222" }}>
+                  {cover.name}
+                </div>
+                <div style={{ fontSize: "14px", color: "#666666" }}>
+                  {inr(cover.price)}
+                </div>
+              </div>
+              <span aria-hidden="true" style={{ width: "40px", height: "40px", borderRadius: "50px", background: "#000000", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: "0" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </span>
+              <div style={{ flex: "1 1 180px", minWidth: "0", display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ aspectRatio: "1 / 1", background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg viewBox="0 0 100 100" aria-hidden="true" style={{ width: "70%", height: "70%", display: "block" }}>
+                    <rect x="26" y="8" width="38" height="78" rx="8" fill="#E4EBEF" stroke="#B9C0C4" strokeWidth="1" />
+                    <rect x="36" y="14" width="38" height="78" rx="8" fill="#E4EBEF" stroke="#B9C0C4" strokeWidth="1" />
+                    <rect x="38" y="16" width="34" height="74" rx="6.5" fill="none" stroke="#1A1A1A" strokeWidth="1.5" />
+                    <polygon points="40,60 66,22 70,22 44,60" fill="#FFFFFF" />
+                  </svg>
+                </div>
+                <div style={{ fontSize: "15px", fontWeight: "700", color: "#222222" }}>
+                  {GLASS.name}
+                </div>
+                <div style={{ fontSize: "14px", color: "#666666" }}>
+                  <span style={{ color: "#EB0000", fontWeight: "700" }}>
+                    {inr(GLASS_WITH_CASE)}
+                  </span>
+                  {" "}
+                  <s>
+                    {inr(GLASS.price)}
+                  </s>
+                  {" with case"}
+                </div>
+              </div>
+              <span aria-hidden="true" style={{ width: "40px", height: "40px", borderRadius: "50px", background: "#000000", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: "0" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </span>
+              <div style={{ flex: "1 1 180px", minWidth: "0", display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ aspectRatio: "1 / 1", background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg viewBox="0 0 100 100" aria-hidden="true" style={{ width: "70%", height: "70%", display: "block" }}>
+                    <rect x="22" y="22" width="56" height="56" rx="16" fill="#E4EBEF" stroke="#222222" strokeWidth="1.2" />
+                    <g fill="#111111" stroke="#222222" strokeWidth="1">
+                      <circle cx="38" cy="38" r="9" />
+                      <circle cx="38" cy="62" r="9" />
+                      <circle cx="62" cy="50" r="9" />
+                    </g>
+                    <g fill="none" stroke="#FFFFFF" strokeOpacity="0.7" strokeWidth="1">
+                      <circle cx="38" cy="38" r="5" />
+                      <circle cx="38" cy="62" r="5" />
+                      <circle cx="62" cy="50" r="5" />
+                    </g>
+                  </svg>
+                </div>
+                <div style={{ fontSize: "15px", fontWeight: "700", color: "#222222" }}>
+                  {LENS.name}
+                </div>
+                <div style={{ fontSize: "14px", color: "#666666" }}>
+                  {inr(LENS.price)}
+                </div>
+              </div>
+            </div>
+            <div className="pad-card" style={{ gridColumn: "span 4", background: "#FFFFFF", padding: "32px", display: "flex", flexDirection: "column", gap: "14px" }}>
+              <div style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#666666" }}>
+                {n > 1 ? `Total for ${3 * n} items (one set per model)` : "Total for 3 items"}
+              </div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
+                <span style={{ fontSize: "29px", fontWeight: "800", color: "#222222" }}>
+                  {inr(setPrice * n)}
+                </span>
+                <s style={{ fontSize: "15px", color: "#666666" }}>
+                  {inr((cover.price + GLASS.price + LENS.price) * n)}
+                </s>
+              </div>
+              <p style={{ margin: "0", fontSize: "14px", color: "#666666" }}>
+                {"You save "}{inr((GLASS.price - GLASS_WITH_CASE) * n)}{". Glass is 50% off when bought with any cover."}
+              </p>
+              <button type="button" className="btn-solid" onClick={addSet} style={{ height: "56px", border: "0", borderRadius: "50px", background: "#000000", color: "#FFFFFF", fontFamily: "inherit", fontSize: "15px", fontWeight: "700", cursor: "pointer" }}>
+                {added === "set" ? "Added ✓" : n > 1 ? `Add ${3 * n} to Cart` : "Add All 3 to Cart"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* REVIEWS (empty state) */}
+      <section style={{ background: "#FFFFFF", borderBottom: "1px solid #EEEEEE" }}>
+        <div className="wrap g12" style={{ maxWidth: "1420px", margin: "0 auto", padding: "96px 40px", display: "grid", gridTemplateColumns: "repeat(12, minmax(0, 1fr))", columnGap: "24px", rowGap: "32px", alignItems: "center" }}>
+          <div style={{ gridColumn: "span 5", display: "flex", flexDirection: "column", gap: "14px" }}>
+            <h2 style={{ margin: "0", fontSize: "29px", lineHeight: "1.15", fontWeight: "800", letterSpacing: "-0.02em", color: "#222222" }}>
+              Customer Reviews
+            </h2>
+            <svg width="136" height="24" viewBox="0 0 136 24" role="img" aria-label="No ratings yet">
+              <g fill="none" stroke="#222222" strokeWidth="1.5" strokeLinejoin="round">
+                <path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9l-5.3 2.7 1-5.8-4.2-4.1 5.9-.9z" />
+                <path transform="translate(28 0)" d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9l-5.3 2.7 1-5.8-4.2-4.1 5.9-.9z" />
+                <path transform="translate(56 0)" d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9l-5.3 2.7 1-5.8-4.2-4.1 5.9-.9z" />
+                <path transform="translate(84 0)" d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9l-5.3 2.7 1-5.8-4.2-4.1 5.9-.9z" />
+                <path transform="translate(112 0)" d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9l-5.3 2.7 1-5.8-4.2-4.1 5.9-.9z" />
+              </g>
+            </svg>
+            <p style={{ margin: "0", color: "#666666" }}>
+              No reviews yet for this case.
+            </p>
+          </div>
+          <div style={{ gridColumn: "span 7", border: "1.5px dashed #DDDDDD", padding: "40px", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "14px" }}>
+            <h3 style={{ margin: "0", fontSize: "20px", fontWeight: "700", color: "#222222" }}>
+              {"Own the "}{cover.name}{"?"}
+            </h3>
+            <p style={{ margin: "0", color: "#666666" }}>
+              Reviews from verified buyers will show up here, newest first.
+            </p>
+            <a className="btn-ghost" href="#write-review" style={{ height: "48px", padding: "0 24px", borderRadius: "50px", border: "1.5px solid #222222", color: "#222222", display: "inline-flex", alignItems: "center", fontWeight: "700", fontSize: "14px" }}>
+              Write a Review
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* YOU MAY ALSO LIKE */}
+      <section style={{ background: "#FFFFFF" }}>
+        <div className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "96px 40px 120px", display: "flex", flexDirection: "column", gap: "40px" }}>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "24px", flexWrap: "wrap" }}>
+            <h2 className="hx" style={{ margin: "0", fontSize: "56px", lineHeight: "1.05", fontWeight: "800", letterSpacing: "-0.03em", color: "#222222" }}>
+              You may also like
+            </h2>
+            <Link to="/collection" className="btn-ghost" style={{ height: "48px", padding: "0 24px", borderRadius: "50px", border: "1.5px solid #222222", color: "#222222", display: "inline-flex", alignItems: "center", gap: "10px", fontWeight: "700", fontSize: "14px" }}>
+              View All Products
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </Link>
+          </div>
+          <div className="g4" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "20px" }}>
+            {related.map((r) => (
+              <ProductCard key={r} id={r} />
+            ))}
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

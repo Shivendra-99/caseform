@@ -1,254 +1,235 @@
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useStore } from "../store.jsx";
+import { lockScroll } from "../motion/smoothScroll.js";
+import ModelPicker from "./ModelPicker.jsx";
+import { SOCIAL } from "../business.js";
+
+// Primary nav; links point at homepage sections. `active` marks the link for the current page.
+const NAV = [
+  { label: "Select iPhone Model", to: "/#models", caret: true },
+  { label: "MagSafe Covers", to: "/#lineup", active: "/product" },
+  { label: "Tempered Glass", to: "/#glass" },
+  { label: "Camera Lens Glass", to: "/#lineup" },
+  { label: "Case + Glass Combos", to: "/#bestsellers" },
+];
+
+// Menu drawer links (below 1360px). The "Your iPhone" row above them opens the model sub-view.
+const MENU = [
+  { label: "Home", to: "/" },
+  { label: "Shop all", to: "/collection" },
+  { label: "MagSafe Covers", to: "/#lineup" },
+  { label: "Tempered Glass", to: "/#glass" },
+  { label: "Camera Lens Glass", to: "/#lineup" },
+  { label: "Case + Glass Combos", to: "/#bestsellers" },
+  { label: "Help & Guides", to: "/#help" },
+];
+const roundBtn = { width: "56px", height: "56px", border: "1px solid #E6E6E6", borderRadius: "50px", background: "#FFFFFF", color: "#111111", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: "0" };
+
+// Brand glyphs for the SOCIAL links in business.js (drawn in the 24px icon grid used site-wide).
+const SOCIAL_ICONS = {
+  Instagram: (
+    <>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  Facebook: <path fill="currentColor" stroke="none" d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H8v3h2.5V21z" />,
+  YouTube: (
+    <>
+      <rect x="2.5" y="5.5" width="19" height="13" rx="4" fill="currentColor" stroke="none" />
+      <path d="M10.2 9.2v5.6l4.8-2.8z" fill="#F6F6F6" stroke="none" />
+    </>
+  ),
+  WhatsApp: (
+    <>
+      <path d="M12 3.5a8.5 8.5 0 0 0-7.4 12.7L3.5 20.5l4.4-1.1A8.5 8.5 0 1 0 12 3.5z" />
+      <path d="M9.2 8.6c.2-.4.6-.4.9-.4l.6 1.4c.1.2 0 .5-.1.6l-.5.6c.6 1.2 1.6 2.2 2.9 2.8l.6-.6c.2-.2.4-.2.6-.1l1.4.7c0 .4-.1.8-.4 1.1-.5.5-1.4.7-2.4.3-1.8-.7-3.4-2.3-4.1-4.1-.3-.9-.1-1.8.5-2.3z" fill="currentColor" stroke="none" />
+    </>
+  ),
+};
+
+const iconBtn = { width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50px", color: "#222222" };
+const underline = { textDecoration: "underline", textUnderlineOffset: "7px", textDecorationThickness: "1.5px" };
 
 export default function StoreHeader() {
-  const { device, count } = useStore();
+  const { count, devices, setDevices } = useStore();
+  const { pathname } = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const drawer = useRef(null);
+  const menuBtn = useRef(null);
+  const [view, setView] = useState("main"); // "main" | "models"
+  // Every way out (X, backdrop, Esc, a link) ends here; focus goes back to the menu button.
+  const close = () => {
+    setMenuOpen(false);
+    setView("main");
+    menuBtn.current?.focus();
+  };
+
+  // The drawer is a native modal <dialog>: focus stays inside, Esc closes it, the page behind is
+  // inert. The page behind stops scrolling.
+  useEffect(() => {
+    const d = drawer.current;
+    if (menuOpen && !d.open) d.showModal();
+    if (!menuOpen && d.open) d.close();
+    lockScroll(menuOpen);
+    return () => lockScroll(false);
+  }, [menuOpen]);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-canvas-bg/95 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
-      <div className="bg-primary text-on-primary py-1.5 px-margin md:px-margin-desktop">
-        <div className="max-w-[1360px] mx-auto flex items-center justify-between font-label-sm text-label-sm uppercase tracking-wider">
-          <div className="hidden md:flex items-center gap-space-xs text-on-primary/60">
-            <span className="w-1.5 h-1.5 rounded-full bg-status-verified inline-block" />
-            <span>
-              Direct From Lab
-            </span>
-          </div>
-          <div className="flex-1 text-center truncate px-space-sm">
-            <span className="font-medium tracking-normal">
-              Premium iPhone Protection
-            </span>
-            <span className="mx-space-xs text-on-primary/40">
-              |
-            </span>
-            <span className="text-on-primary/90">
-              Extra 10% Savings on Prepaid UPI
-            </span>
-            <span className="mx-space-xs text-on-primary/40">
-              |
-            </span>
-            <span className="text-on-primary/80 hidden sm:inline">
-              Free Express Shipping ₹999+
-            </span>
-          </div>
-          <div className="hidden md:flex items-center gap-space-md font-label-sm text-label-sm normal-case">
-            <a className="text-on-primary/80 hover:text-on-primary transition-colors" data-path="track-order" href="#">
-              Track Order
-            </a>
-            <span className="text-on-primary/30">
-              /
-            </span>
-            <a className="text-on-primary/80 hover:text-on-primary transition-colors" data-path="contact-support" href="#">
-              Support
-            </a>
-          </div>
+    <>
+      {/* PROMO BAR */}
+      <div className="se-root se-font" style={{ background: "#000000", color: "#FFFFFF", fontSize: "13px", letterSpacing: "0.02em" }}>
+        <div className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "10px 40px", minHeight: "40px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px 14px", flexWrap: "wrap", textAlign: "center" }}>
+          <span style={{ fontWeight: "600" }}>Buy Any iPhone Cover + Get 50% Off 9H Tempered Glass</span>
+          <span className="promo-x" aria-hidden="true" style={{ color: "#666666" }}>
+            |
+          </span>
+          <span style={{ fontWeight: "400" }}>Free Shipping ₹499+</span>
         </div>
       </div>
-      <div className="h-20 max-w-[1360px] mx-auto px-margin md:px-margin-desktop flex items-center justify-between gap-space-md">
-        <div className="flex items-center gap-space-lg">
-          <Link to="/" className="flex items-center gap-space-sm focus:outline-none">
-            <img alt="SNAP EDGE" className="h-6 w-auto" src="/logo.svg" />
+
+      {/* STICKY HEADER */}
+      <header className="se-root se-font" style={{ position: "sticky", top: "0", zIndex: "30", background: "#FFFFFF", borderBottom: "1px solid #EEEEEE" }}>
+        <div className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "0 40px", height: "76px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "24px" }}>
+          <Link to="/" aria-label="SnapEdge home" style={{ display: "flex", alignItems: "center", gap: "12px", color: "#000000", flexShrink: "0" }}>
+            <span style={{ width: "36px", height: "36px", background: "#000000", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "800", fontSize: "15px", letterSpacing: "-0.02em" }}>SE</span>
+            <span className="wordmark" style={{ fontWeight: "800", fontSize: "17px", letterSpacing: "0.16em", whiteSpace: "nowrap" }}>SNAP EDGE</span>
           </Link>
-          <div className="hidden lg:flex items-center bg-surface-card py-1.5 px-space-sm rounded-xl gap-space-xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-secondary inline-block" />
-            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
-              Shopping For
-            </span>
-            <Link to="/" className="font-label-sm text-label-sm font-semibold text-primary flex items-center gap-0.5 hover:text-secondary transition-colors">
-              <span>
-                {device}
-              </span>
-              <span className="material-symbols-outlined text-[14px]">
-                expand_more
-              </span>
+          <nav className="nav" aria-label="Primary" style={{ display: "flex", alignItems: "center", gap: "20px", fontSize: "13px", fontWeight: "600", whiteSpace: "nowrap" }}>
+            {NAV.map((n) => (
+              <Link
+                key={n.label}
+                className="nav-a"
+                to={n.to}
+                aria-current={n.active === pathname ? "page" : undefined}
+                style={{ display: "flex", alignItems: "center", gap: "6px", height: "44px", color: n.caret ? "#000000" : undefined, ...(n.active === pathname ? underline : null) }}
+              >
+                {n.label}
+                {n.caret && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                )}
+              </Link>
+            ))}
+          </nav>
+          <div style={{ display: "flex", alignItems: "center", gap: "2px", flexShrink: "0" }}>
+            <div className="search" style={{ display: "flex", alignItems: "center", gap: "8px", height: "44px", padding: "0 16px", marginRight: "8px", borderRadius: "50px", background: "#F4F4F4", border: "1px solid #EEEEEE", color: "#666666" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-3.5-3.5" />
+              </svg>
+              <label htmlFor="se-q" className="sr">
+                Search
+              </label>
+              <input id="se-q" type="search" placeholder="Search covers, glass…" style={{ border: "0", background: "transparent", outline: "none", fontFamily: "inherit", fontSize: "13px", width: "124px", color: "#222222" }} />
+            </div>
+            <Link to="/signin" aria-label="Account" style={iconBtn}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
+              </svg>
             </Link>
+            <Link to="/account" aria-label="Wishlist" style={iconBtn}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 20s-7-4.4-9-9.2C1.8 7.6 4 4.5 7.2 4.5c2 0 3.6 1.1 4.8 2.8 1.2-1.7 2.8-2.8 4.8-2.8 3.2 0 5.4 3.1 4.2 6.3C19 15.6 12 20 12 20z" />
+              </svg>
+            </Link>
+            <Link to="/cart" aria-label={`Cart, ${count} ${count === 1 ? "item" : "items"}`} style={{ ...iconBtn, position: "relative" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 8h14l-1 12H6L5 8z" />
+                <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+              </svg>
+              {count > 0 && (
+                <span style={{ position: "absolute", top: "4px", right: "1px", minWidth: "18px", height: "18px", padding: "0 5px", borderRadius: "50px", background: "#EB0000", color: "#FFFFFF", fontSize: "11px", fontWeight: "700", lineHeight: "18px", textAlign: "center" }}>
+                  {count}
+                </span>
+              )}
+            </Link>
+            <button ref={menuBtn} type="button" className="menu-btn" aria-label="Open menu" aria-haspopup="dialog" aria-expanded={menuOpen} aria-controls="se-menu" onClick={() => setMenuOpen(true)} style={{ width: "44px", height: "44px", alignItems: "center", justifyContent: "center", border: "0", borderRadius: "50px", background: "transparent", color: "#222222", cursor: "pointer" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            </button>
           </div>
         </div>
-        <nav className="hidden xl:flex items-center gap-space-lg" data-active-classes="text-primary font-semibold">
-          <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors font-label-lg text-label-lg">
-            Cases
-          </Link>
-          <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors font-label-lg text-label-lg">
-            Tempered Glass
-          </Link>
-          <div className="group relative">
-            <Link to="/collection" className="text-on-surface-variant group-hover:text-primary transition-colors font-label-lg text-label-lg flex items-center gap-0.5 py-space-sm">
-              <span>
-                Shop by iPhone
-              </span>
-              <span className="material-symbols-outlined text-[16px] transition-transform group-hover:rotate-180">
-                keyboard_arrow_down
-              </span>
+      </header>
+
+      {/* Below 1360px the nav moves into this drawer. Clicks on the dimmed backdrop land on the
+          <dialog> itself (the panel content fills it), so those close the drawer. */}
+      <dialog ref={drawer} id="se-menu" aria-label="Menu" className="se-root menu-drawer" data-lenis-prevent onClose={close} onCancel={(e) => view === "models" && (e.preventDefault(), setView("main"))} onClick={(e) => e.target === e.currentTarget && close()}>
+        <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: view === "main" ? "flex-end" : "space-between", gap: "12px", padding: "28px 28px 0" }}>
+            {view === "models" && (
+              <button type="button" onClick={() => setView("main")} className="menu-back" style={{ height: "48px", padding: "0 6px", border: "0", background: "transparent", color: "#111111", display: "flex", alignItems: "center", gap: "8px", fontFamily: "inherit", fontSize: "16px", fontWeight: "600", cursor: "pointer" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M15 6l-6 6 6 6" />
+                </svg>
+                Menu
+              </button>
+            )}
+            <button type="button" aria-label="Close menu" onClick={close} style={roundBtn}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+          </div>
+
+          {view === "main" ? (
+            <nav aria-label="Menu" style={{ flex: "1 1 auto", overflowY: "auto", padding: "56px 32px 32px" }}>
+              <ul style={{ listStyle: "none", margin: "0", padding: "0" }}>
+                <li className="menu-link" style={{ "--i": 0 }}>
+                  <button type="button" onClick={() => setView("models")} className="menu-row" style={{ width: "100%", border: "0", background: "transparent", textAlign: "left", cursor: "pointer" }}>
+                    <span>Your iPhone</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: "0" }}>
+                      <span className="menu-value">{devices.length > 1 ? `${devices.length} models` : devices[0]}</span>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: "0" }}>
+                        <path d="M9 6l6 6-6 6" />
+                      </svg>
+                    </span>
+                  </button>
+                </li>
+                {MENU.map((m, i) => (
+                  <li key={m.label} className="menu-link" style={{ "--i": i + 1 }}>
+                    <Link to={m.to} onClick={close} className="menu-row">
+                      {m.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ) : (
+            <div style={{ flex: "1 1 auto", overflowY: "auto", padding: "32px 22px 24px" }}>
+              <h2 id="menu-model-h" style={{ margin: "0 10px 6px", fontFamily: "'Geist', 'Sora', system-ui, sans-serif", fontSize: "30px", fontWeight: "600", letterSpacing: "-0.02em", color: "#111111" }}>
+                Your iPhone
+              </h2>
+              <p style={{ margin: "0 10px 16px", fontSize: "14px", color: "#666666" }}>Tick every model you're buying for.</p>
+              <ModelPicker inline value={devices} onChange={setDevices} labelledBy="menu-model-h" onDone={() => setView("main")} />
+            </div>
+          )}
+
+          <div style={{ padding: "22px 28px", background: "#F6F6F6", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+            <Link to="/signin" onClick={close} className="btn-solid" style={{ height: "52px", padding: "0 22px", borderRadius: "50px", background: "#111111", color: "#FFFFFF", display: "inline-flex", alignItems: "center", gap: "10px", fontSize: "15px", fontWeight: "600" }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
+              </svg>
+              My account
             </Link>
-            <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 absolute top-full left-1/2 -translate-x-1/2 w-[720px] bg-canvas-bg rounded-xl shadow-[0_12px_32px_rgba(0,0,0,0.08)] p-space-lg grid grid-cols-3 gap-space-md pointer-events-auto">
-              <div className="space-y-space-xs">
-                <div className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-semibold pb-space-xs">
-                  iPhone 18 Series
-                </div>
-                <ul className="space-y-1 font-body-sm text-body-sm">
-                  <li>
-                    <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors block py-1">
-                      iPhone 18 Pro Max
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors block py-1">
-                      iPhone 18 Pro
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors block py-1">
-                      iPhone 18 Plus
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors block py-1">
-                      iPhone 18
-                    </Link>
-                  </li>
-                </ul>
-                <div className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-semibold pt-space-sm pb-space-xs">
-                  iPhone 17 Series
-                </div>
-                <ul className="space-y-1 font-body-sm text-body-sm">
-                  <li>
-                    <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors block py-1">
-                      iPhone 17 Pro Max
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors block py-1">
-                      iPhone 17 Pro
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors block py-1">
-                      iPhone 17
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors block py-1">
-                      iPhone 17e
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-              <div className="space-y-space-xs">
-                <div className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-semibold pb-space-xs">
-                  iPhone 16 Series
-                </div>
-                <ul className="space-y-1 font-body-sm text-body-sm">
-                  <li>
-                    <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors block py-1">
-                      iPhone 16 Pro Max
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors block py-1">
-                      iPhone 16 Pro
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors block py-1">
-                      iPhone 16 Plus
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors block py-1">
-                      iPhone 16
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors block py-1">
-                      iPhone 16e
-                    </Link>
-                  </li>
-                </ul>
-                <div className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-semibold pt-space-sm pb-space-xs">
-                  iPhone 15 Series
-                </div>
-                <ul className="space-y-1 font-body-sm text-body-sm">
-                  <li>
-                    <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors block py-1">
-                      iPhone 15 Pro Max
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors block py-1">
-                      iPhone 15 Pro
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors block py-1">
-                      iPhone 15
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-              <div className="bg-surface-card p-space-md rounded-lg flex flex-col justify-between">
-                <div className="space-y-space-xs">
-                  <div className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface font-semibold">
-                    Legacy Flagships
-                  </div>
-                  <ul className="space-y-1 font-body-sm text-body-sm text-on-surface-variant">
-                    <li>
-                      <Link to="/collection" className="hover:text-primary transition-colors block py-1">
-                        iPhone 14 Series
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/collection" className="hover:text-primary transition-colors block py-1">
-                        iPhone 13 Series
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-                <div className="pt-space-md">
-                  <div className="font-label-sm text-label-sm text-secondary font-medium uppercase tracking-wider">
-                    Japanese Asahi Glass
-                  </div>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
-                    9H Ion-Exchange Tempered Precision.
-                  </p>
-                </div>
-              </div>
+            <div style={{ display: "flex", gap: "2px" }}>
+              {SOCIAL.map((so) => (
+                <a key={so.name} href={so.url} target="_blank" rel="noopener noreferrer" aria-label={`SnapEdge on ${so.name} (opens in a new tab)`} className="menu-social" style={iconBtn}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    {SOCIAL_ICONS[so.name]}
+                  </svg>
+                </a>
+              ))}
             </div>
           </div>
-          <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors font-label-lg text-label-lg">
-            Bestsellers
-          </Link>
-          <Link to="/collection" className="text-on-surface-variant hover:text-primary transition-colors font-label-lg text-label-lg">
-            New Arrivals
-          </Link>
-        </nav>
-        <div className="flex items-center gap-space-sm">
-          <button aria-label="Search Products" className="w-10 h-10 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-card transition-colors" type="button">
-            <span className="material-symbols-outlined text-[20px]">
-              search
-            </span>
-          </button>
-          <Link to="/account" className="relative w-10 h-10 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-card transition-colors">
-            <span className="material-symbols-outlined text-[20px]">
-              favorite
-            </span>
-            <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-primary text-on-primary font-label-sm text-[10px] leading-none rounded-full flex items-center justify-center font-bold">
-              2
-            </span>
-          </Link>
-          <Link to="/cart" aria-label="Shopping Bag" className="relative w-10 h-10 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-card transition-colors">
-            <span className="material-symbols-outlined text-[20px]">
-              shopping_bag
-            </span>
-            <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-secondary text-on-secondary font-label-sm text-[10px] leading-none rounded-full flex items-center justify-center font-bold">
-              {count}
-            </span>
-          </Link>
-          <Link to="/signin" aria-label="Sign in" className="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-1">
-            <span className="material-symbols-outlined text-on-primary text-[18px]">
-              person
-            </span>
-          </Link>
         </div>
-      </div>
-    </header>
+      </dialog>
+    </>
   );
 }

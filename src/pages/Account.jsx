@@ -1,6 +1,6 @@
 export default function Account() {
   return (
-    <main className="w-full pt-[106px] bg-surface">
+    <main className="w-full bg-surface">
       <div className="flex flex-col w-full">
         <section className="w-full bg-surface-card py-space-md">
           <div className="max-w-7xl mx-auto px-margin md:px-margin-tablet lg:px-margin-desktop flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
@@ -33,7 +33,7 @@ export default function Account() {
                     verified_user
                   </span>
                   <span>
-                    CASEFORM CARE:
+                    SNAP EDGE CARE:
                   </span>
                   <span className="font-semibold text-primary">
                     342 DAYS ACTIVE
@@ -206,7 +206,7 @@ export default function Account() {
                       </span>
                     </div>
                     <h2 className="font-headline-md text-headline-md text-primary font-semibold mt-0.5">
-                      Order #CF-98241
+                      Order #SE-98241
                     </h2>
                     <p className="font-body-sm text-body-sm text-on-surface-variant">
                       Placed March 28, 2025 • Express Air Courier
@@ -302,7 +302,7 @@ export default function Account() {
                   <div className="p-space-sm bg-surface rounded-xl flex items-center justify-between gap-space-md">
                     <div className="flex items-center gap-space-md">
                       <div className="w-16 h-16 rounded-lg bg-surface-card flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
-                        <img className="w-full h-full object-contain p-1" data-alt="CASEFORM AeroShield ultra-clear MagSafe case for iPhone 17 Pro floating on light grey backdrop with aluminum camera ring accent and aerospace grade polycarbonate shell" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3LD11xEgPQW44slkQflxKxNGPlQT8F_My1cOCM0RP9SkKxxvc0WgSgR96vymqJMAOscCYtgaWi0RDBeKa5XLrxKP0JkyVlHYKDPyXNeNj3Na1eoO0sMDz8dfAFZ_u_IOjkAxvSc6yW7KyK9-ssc9CxDhRN_4nW7xHl65TbwrG4fKAIumo3MsLzljqcjKIPTn0uUyO6yieaqTane3jfdBILRE4xg1OoC4Tt9xOjryM5qUzASgwfHytkg" />
+                        <img className="w-full h-full object-contain p-1" data-alt="SNAP EDGE AeroShield ultra-clear MagSafe case for iPhone 17 Pro floating on light grey backdrop with aluminum camera ring accent and aerospace grade polycarbonate shell" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3LD11xEgPQW44slkQflxKxNGPlQT8F_My1cOCM0RP9SkKxxvc0WgSgR96vymqJMAOscCYtgaWi0RDBeKa5XLrxKP0JkyVlHYKDPyXNeNj3Na1eoO0sMDz8dfAFZ_u_IOjkAxvSc6yW7KyK9-ssc9CxDhRN_4nW7xHl65TbwrG4fKAIumo3MsLzljqcjKIPTn0uUyO6yieaqTane3jfdBILRE4xg1OoC4Tt9xOjryM5qUzASgwfHytkg" />
                       </div>
                       <div>
                         <div className="font-label-lg text-label-lg text-primary font-semibold">
@@ -396,9 +396,9 @@ export default function Account() {
                       iPhone 17 Pro (6.3") - Natural Titanium
                     </h3>
                     <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-                      {"Hardware Serial linked with Caseform Precision Shield ID: "}
+                      {"Hardware Serial linked with SnapEdge Precision Shield ID: "}
                       <span className="font-mono text-primary font-semibold">
-                        CF-IP17P-88912A
+                        SE-IP17P-88912A
                       </span>
                     </p>
                     <div className="flex flex-wrap items-center gap-space-md mt-space-md">
@@ -499,7 +499,7 @@ export default function Account() {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="font-label-lg text-label-lg text-primary font-semibold">
-                          Order #CF-84192
+                          Order #SE-84192
                         </div>
                         <div className="font-body-sm text-body-sm text-on-surface-variant">
                           November 14, 2024 • ₹1,699

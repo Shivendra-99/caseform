@@ -12,7 +12,7 @@ export default function Inventory() {
   const [toast, setToast] = useState(null);
 
   const allSelected = selected.size === ROWS.length;
-  const sku = `CF-${skuType}-${skuSeries}-BLK`;
+  const sku = `SE-${skuType}-${skuSeries}-BLK`;
   const toggleRow = (i) =>
     setSelected((sel) => {
       const next = new Set(sel);
@@ -373,7 +373,7 @@ export default function Inventory() {
                             AeroShield Clear MagSafe Case
                           </span>
                           <span className="font-label-sm text-label-sm text-on-surface-variant tracking-wider font-mono">
-                            CF-AIR-IP17P-NAT
+                            SE-AIR-IP17P-NAT
                           </span>
                           <div className="flex items-center gap-1.5 mt-1">
                             <span className="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-card text-on-surface-variant">
@@ -524,7 +524,7 @@ export default function Inventory() {
                             OptiGlass 9H Edge-to-Edge [2-Pack]
                           </span>
                           <span className="font-label-sm text-label-sm text-on-surface-variant tracking-wider font-mono">
-                            CF-GLS-IP17P-2PK
+                            SE-GLS-IP17P-2PK
                           </span>
                           <div className="flex items-center gap-1.5 mt-1">
                             <span className="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-card text-on-surface-variant">
@@ -675,7 +675,7 @@ export default function Inventory() {
                             ArmorMatrix Rugged DropGuard
                           </span>
                           <span className="font-label-sm text-label-sm text-on-surface-variant tracking-wider font-mono">
-                            CF-RUG-IP17PM-OBS
+                            SE-RUG-IP17PM-OBS
                           </span>
                           <div className="flex items-center gap-1.5 mt-1">
                             <span className="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-card text-on-surface-variant">
@@ -818,7 +818,7 @@ export default function Inventory() {
                             PrivacyPro 28° Anti-Spy Optical Glass
                           </span>
                           <span className="font-label-sm text-label-sm text-on-surface-variant tracking-wider font-mono">
-                            CF-GLS-IP16P-PVY
+                            SE-GLS-IP16P-PVY
                           </span>
                           <div className="flex items-center gap-1.5 mt-1">
                             <span className="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-card text-on-surface-variant">
@@ -966,7 +966,7 @@ export default function Inventory() {
                             Titanium Edge MagSafe Shield - Grade 5
                           </span>
                           <span className="font-label-sm text-label-sm text-on-surface-variant tracking-wider font-mono">
-                            CF-TIT-IP17P-SIL
+                            SE-TIT-IP17P-SIL
                           </span>
                           <div className="flex items-center gap-1.5 mt-1">
                             <span className="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-card text-on-surface-variant">
@@ -1172,7 +1172,7 @@ export default function Inventory() {
             <div className="h-16 px-6 bg-surface-card flex items-center justify-between flex-shrink-0 shadow-sm">
               <div className="flex items-center gap-2">
                 <span className="w-7 h-7 rounded-lg bg-primary text-on-primary flex items-center justify-center font-label-md text-label-md">
-                  CF
+                  SE
                 </span>
                 <div>
                   <h3 className="font-headline-sm text-headline-sm font-semibold text-on-surface">

@@ -65,7 +65,7 @@ export default function SignIn() {
               <div className="relative bg-surface-card rounded-xl overflow-hidden shadow-sm p-6 flex flex-col justify-between min-h-[580px]">
                 <div className="flex items-center justify-between">
                   <span className="bg-surface-container-lowest text-primary font-label-sm text-label-sm uppercase px-2.5 py-1 rounded-full shadow-sm">
-                    Ref: CF-AIR-PRO
+                    Ref: SE-AIR-PRO
                   </span>
                   <span className="text-outline font-label-sm text-label-sm tracking-wider">
                     OPTICAL POLYCARBONATE
@@ -133,7 +133,7 @@ export default function SignIn() {
                     </span>
                   </div>
                   <h1 className="font-headline-lg text-headline-lg tracking-tight text-primary">
-                    Sign in to your CASEFORM Account
+                    Sign in to your SNAP EDGE Account
                   </h1>
                   <p className="font-body-md text-body-md text-on-surface-variant">
                     Access your orders, saved iPhone model preferences, warranties, and priority dispatch benefits.
@@ -276,7 +276,7 @@ export default function SignIn() {
                 </div>
                 <div className="text-center pt-2">
                   <p className="font-body-md text-body-md text-on-surface-variant">
-                    {"New to CASEFORM? "}
+                    {"New to SNAP EDGE? "}
                     <a className="font-label-lg text-label-lg text-primary hover:underline ml-1" href="#register">
                       Create an Account
                     </a>
@@ -289,7 +289,7 @@ export default function SignIn() {
                     shield
                   </span>
                   <span>
-                    Why maintain a verified CASEFORM profile?
+                    Why maintain a verified SNAP EDGE profile?
                   </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
@@ -340,7 +340,7 @@ export default function SignIn() {
                     lock_outline
                   </span>
                   <span>
-                    By signing in, you agree to CASEFORM Terms of Service and Privacy Policy.
+                    By signing in, you agree to SNAP EDGE Terms of Service and Privacy Policy.
                   </span>
                 </div>
                 <div className="flex items-center space-x-4">

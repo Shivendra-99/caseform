@@ -1,56 +1,70 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { MODELS, PRODUCTS, optionsFor, priceLines } from "./catalog.js";
 
-const IMG = {
-  aeroshield: "/images/aeroshield.jpg",
-  optiglass: "/images/optiglass.jpg",
-  armormatrix: "/images/armormatrix.jpg",
+export { PRODUCTS, FREE_SHIPPING, inr } from "./catalog.js";
+
+const CART_KEY = "se-cart";
+const DEVICES_KEY = "se-devices";
+const OLD_DEVICE_KEY = "se-device"; // single model, saved by earlier versions
+
+// The bag and chosen models are kept in localStorage so a reload (or coming back
+// from checkout) doesn't lose them. Storage can be unavailable, so every access is guarded.
+function load(key, fallback, valid) {
+  try {
+    const v = JSON.parse(localStorage.getItem(key));
+    return valid(v) ? v : fallback;
+  } catch {
+    return fallback;
+  }
+}
+const save = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* private mode or full storage: keep working in memory */
+  }
 };
-
-// Catalogue of items that can be added to the bag (prices from the Stitch designs).
-export const PRODUCTS = {
-  aeroshield: { name: "AeroShield Clear MagSafe Case", tag: "Aerospace Grade", price: 1499, mrp: 2199, img: IMG.aeroshield, note: "Natural Titanium Ring", spec: "Qi2 15W Certified • 0.33mm Bezel Float" },
-  optiglass: { name: "OptiGlass 9H Edge-to-Edge [2-Pack]", tag: "Optical Precision", price: 799, mrp: 1299, img: IMG.optiglass, note: "Includes EZ-Align Tray", spec: "Japanese Asahi AGC • 2.5D Polished Edges" },
-  armormatrix: { name: "ArmorMatrix Rugged DropGuard", tag: "Mil-Grade", price: 1799, mrp: 2499, img: IMG.armormatrix, note: "Matte Black" },
-  privacypro: { name: "PrivacyPro 28° Anti-Spy Glass", tag: "Privacy Filter", price: 999, mrp: 1499, img: IMG.optiglass, note: "28° Privacy Filter" },
-  kickstand: { name: "ArmorMatrix Tactical Kickstand Module", tag: "Bundle", price: 699, mrp: 1499, img: IMG.armormatrix, note: "Space Grey Hinge" },
-  frosted: { name: "AeroShield Frosted Matte Case", tag: "Everyday Slim", price: 1399, mrp: 1999, img: IMG.armormatrix, note: "Frosted Matte" },
-  titanium: { name: "Titanium Edge MagSafe Shield", tag: "Aerospace Grade", price: 1899, mrp: 2699, img: IMG.armormatrix, note: "Titanium Edge" },
-  optisingle: { name: "OptiGlass Ultra-Clear Single Pack", tag: "Optical Precision", price: 499, mrp: 899, img: IMG.optiglass, note: "Single Pack" },
-  kickstandcase: { name: "ArmorMatrix Tactical Kickstand Case", tag: "Mil-Grade", price: 1999, mrp: 2799, img: IMG.armormatrix, note: "Integrated Kickstand" },
-};
-
-export const FREE_SHIPPING = 999;
-
-export const inr = (n) => "₹" + n.toLocaleString("en-IN");
+// A saved bag is dropped if any line names a retired product or an option it no longer comes in.
+const validVariant = (i) => optionsFor(PRODUCTS[i.id])?.some((o) => o.name === i.variant) ?? i.variant == null;
+const validDevices = (v) => Array.isArray(v) && v.length > 0 && v.every((m) => MODELS.includes(m));
+const validCart = (v) => Array.isArray(v) && v.every((i) => PRODUCTS[i?.id] && Number.isInteger(i.qty) && i.qty > 0 && validVariant(i));
 
 const StoreContext = createContext(null);
 
 export function StoreProvider({ children }) {
-  const [device, setDevice] = useState("iPhone 17 Pro");
-  // Seeded with the two items shown in the Stitch cart design.
-  const [cart, setCart] = useState([
-    { id: "aeroshield", device: "iPhone 17 Pro", qty: 1 },
-    { id: "optiglass", device: "iPhone 17 Pro", qty: 1 },
-  ]);
+  // The iPhone models the shopper is buying for: at least one, kept in MODELS order.
+  const [devices, setDevicesState] = useState(() => load(DEVICES_KEY, null, validDevices) ?? [load(OLD_DEVICE_KEY, MODELS[0], (v) => MODELS.includes(v))]);
+  const [cart, setCart] = useState(() => load(CART_KEY, [], validCart));
+  const device = devices[0];
 
-  const addToCart = (id, qty = 1, forDevice = device) =>
+  useEffect(() => save(CART_KEY, cart), [cart]);
+  useEffect(() => save(DEVICES_KEY, devices), [devices]);
+
+  const setDevices = (list) => {
+    const next = MODELS.filter((m) => list.includes(m));
+    if (next.length) setDevicesState(next);
+  };
+
+  const addToCart = (id, qty = 1, forDevice = device, variant) =>
     setCart((c) => {
-      const hit = c.find((i) => i.id === id && i.device === forDevice);
+      const hit = c.find((i) => i.id === id && i.device === forDevice && i.variant === variant);
       return hit
         ? c.map((i) => (i === hit ? { ...i, qty: i.qty + qty } : i))
-        : [...c, { id, device: forDevice, qty }];
+        : [...c, { id, device: forDevice, variant, qty }];
     });
+  // Adds the item once for each selected model (one bag line per model).
+  const addForModels = (id, qty = 1, variant) => devices.forEach((d) => addToCart(id, qty, d, variant));
   const setQty = (item, qty) =>
     setCart((c) => (qty < 1 ? c.filter((i) => i !== item) : c.map((i) => (i === item ? { ...i, qty } : i))));
   const clearCart = () => setCart([]);
 
-  const lines = cart.map((i) => ({ ...i, ...PRODUCTS[i.id], item: i }));
+  const lines = priceLines(cart);
   const count = cart.reduce((s, i) => s + i.qty, 0);
   const subtotal = lines.reduce((s, l) => s + l.price * l.qty, 0);
   const mrpTotal = lines.reduce((s, l) => s + l.mrp * l.qty, 0);
 
   return (
-    <StoreContext.Provider value={{ device, setDevice, lines, count, subtotal, mrpTotal, addToCart, setQty, clearCart }}>
+    <StoreContext.Provider value={{ devices, device, setDevices, lines, count, subtotal, mrpTotal, addToCart, addForModels, setQty, clearCart }}>
       {children}
     </StoreContext.Provider>
   );
