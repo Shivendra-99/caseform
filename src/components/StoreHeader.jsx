@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useStore } from "../store.jsx";
 import { lockScroll } from "../motion/smoothScroll.js";
+import { closeWithExit, cancelExit, useDragDismiss } from "../motion/sheet.js";
 import ModelPicker from "./ModelPicker.jsx";
 import { SOCIAL } from "../business.js";
 
@@ -22,7 +23,6 @@ const MENU = [
   { label: "Tempered Glass", to: "/#glass" },
   { label: "Camera Lens Glass", to: "/#lineup" },
   { label: "Case + Glass Combos", to: "/#bestsellers" },
-  { label: "Help & Guides", to: "/#help" },
 ];
 const roundBtn = { width: "56px", height: "56px", border: "1px solid #E6E6E6", borderRadius: "50px", background: "#FFFFFF", color: "#111111", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: "0" };
 
@@ -59,9 +59,12 @@ export default function StoreHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const drawer = useRef(null);
   const menuBtn = useRef(null);
+  const header = useRef(null);
   const [view, setView] = useState("main"); // "main" | "models"
-  // Every way out (X, backdrop, Esc, a link) ends here; focus goes back to the menu button.
-  const close = () => {
+  // Every way out (X, backdrop, Esc, a link, a swipe) starts here; the drawer slides back out the
+  // way it came, and once it's really closed (onClose → closed) focus goes back to the menu button.
+  const close = () => setMenuOpen(false);
+  const closed = () => {
     setMenuOpen(false);
     setView("main");
     menuBtn.current?.focus();
@@ -71,11 +74,32 @@ export default function StoreHeader() {
   // inert. The page behind stops scrolling.
   useEffect(() => {
     const d = drawer.current;
-    if (menuOpen && !d.open) d.showModal();
-    if (!menuOpen && d.open) d.close();
+    if (menuOpen) {
+      cancelExit(d); // reopened while it was still sliding out: just come back
+      if (!d.open) d.showModal();
+    } else closeWithExit(d);
     lockScroll(menuOpen);
     return () => lockScroll(false);
   }, [menuOpen]);
+
+  // Swipe the drawer back to the left to dismiss it (touch only; it slides in from the left).
+  useDragDismiss(drawer, { axis: "x", dir: -1, touchOnly: true, onDismiss: () => drawer.current?.close() });
+
+  // The header is a translucent layer; its hairline only appears once content scrolls beneath it.
+  useEffect(() => {
+    const onScroll = () => header.current?.toggleAttribute("data-scrolled", window.scrollY > 40);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Bump the bag badge when something is added (not on page load), so the cause is obvious.
+  const [bump, setBump] = useState(0);
+  const lastCount = useRef(count);
+  useEffect(() => {
+    if (count > lastCount.current) setBump((b) => b + 1);
+    lastCount.current = count;
+  }, [count]);
 
   return (
     <>
@@ -91,7 +115,7 @@ export default function StoreHeader() {
       </div>
 
       {/* STICKY HEADER */}
-      <header className="se-root se-font" style={{ position: "sticky", top: "0", zIndex: "30", background: "#FFFFFF", borderBottom: "1px solid #EEEEEE" }}>
+      <header ref={header} className="se-root se-font se-header" style={{ position: "sticky", top: "0", zIndex: "30" }}>
         <div className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "0 40px", height: "76px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "24px" }}>
           <Link to="/" aria-label="SnapEdge home" style={{ display: "flex", alignItems: "center", gap: "12px", color: "#000000", flexShrink: "0" }}>
             <span style={{ width: "36px", height: "36px", background: "#000000", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "800", fontSize: "15px", letterSpacing: "-0.02em" }}>SE</span>
@@ -116,7 +140,7 @@ export default function StoreHeader() {
             ))}
           </nav>
           <div style={{ display: "flex", alignItems: "center", gap: "2px", flexShrink: "0" }}>
-            <div className="search" style={{ display: "flex", alignItems: "center", gap: "8px", height: "44px", padding: "0 16px", marginRight: "8px", borderRadius: "50px", background: "#F4F4F4", border: "1px solid #EEEEEE", color: "#666666" }}>
+            <div className="search" style={{ display: "flex", alignItems: "center", gap: "8px", height: "44px", padding: "0 16px", marginRight: "8px", borderRadius: "50px", background: "rgba(118, 118, 128, 0.1)", border: "1px solid rgba(0, 0, 0, 0.04)", color: "#666666" }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
                 <circle cx="11" cy="11" r="7" />
                 <path d="M20 20l-3.5-3.5" />
@@ -126,24 +150,24 @@ export default function StoreHeader() {
               </label>
               <input id="se-q" type="search" placeholder="Search covers, glass…" style={{ border: "0", background: "transparent", outline: "none", fontFamily: "inherit", fontSize: "13px", width: "124px", color: "#222222" }} />
             </div>
-            <Link to="/signin" aria-label="Account" style={iconBtn}>
+            <Link to="/signin" aria-label="Account" className="icon-btn" style={iconBtn}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="8" r="4" />
                 <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
               </svg>
             </Link>
-            <Link to="/account" aria-label="Wishlist" style={iconBtn}>
+            <Link to="/account" aria-label="Wishlist" className="icon-btn" style={iconBtn}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M12 20s-7-4.4-9-9.2C1.8 7.6 4 4.5 7.2 4.5c2 0 3.6 1.1 4.8 2.8 1.2-1.7 2.8-2.8 4.8-2.8 3.2 0 5.4 3.1 4.2 6.3C19 15.6 12 20 12 20z" />
               </svg>
             </Link>
-            <Link to="/cart" aria-label={`Cart, ${count} ${count === 1 ? "item" : "items"}`} style={{ ...iconBtn, position: "relative" }}>
+            <Link to="/cart" aria-label={`Cart, ${count} ${count === 1 ? "item" : "items"}`} className="icon-btn" style={{ ...iconBtn, position: "relative" }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M5 8h14l-1 12H6L5 8z" />
                 <path d="M9 8V6a3 3 0 0 1 6 0v2" />
               </svg>
               {count > 0 && (
-                <span style={{ position: "absolute", top: "4px", right: "1px", minWidth: "18px", height: "18px", padding: "0 5px", borderRadius: "50px", background: "#EB0000", color: "#FFFFFF", fontSize: "11px", fontWeight: "700", lineHeight: "18px", textAlign: "center" }}>
+                <span key={bump} className={bump ? "cart-badge bump" : "cart-badge"} style={{ position: "absolute", top: "4px", right: "1px", minWidth: "18px", height: "18px", padding: "0 5px", borderRadius: "50px", background: "#EB0000", color: "#FFFFFF", fontSize: "11px", fontWeight: "700", lineHeight: "18px", textAlign: "center" }}>
                   {count}
                 </span>
               )}
@@ -159,7 +183,7 @@ export default function StoreHeader() {
 
       {/* Below 1360px the nav moves into this drawer. Clicks on the dimmed backdrop land on the
           <dialog> itself (the panel content fills it), so those close the drawer. */}
-      <dialog ref={drawer} id="se-menu" aria-label="Menu" className="se-root menu-drawer" data-lenis-prevent onClose={close} onCancel={(e) => view === "models" && (e.preventDefault(), setView("main"))} onClick={(e) => e.target === e.currentTarget && close()}>
+      <dialog ref={drawer} id="se-menu" aria-label="Menu" className="se-root menu-drawer" data-lenis-prevent onClose={closed} onCancel={(e) => (view === "models" || e.cancelable) && (e.preventDefault(), view === "models" ? setView("main") : close())} onClick={(e) => e.target === e.currentTarget && close()}>
         <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: view === "main" ? "flex-end" : "space-between", gap: "12px", padding: "28px 28px 0" }}>
             {view === "models" && (

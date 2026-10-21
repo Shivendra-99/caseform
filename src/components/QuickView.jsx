@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useStore } from "../store.jsx";
 import { PRODUCTS, COLORS, FINISHES, inr, modelsText } from "../catalog.js";
 import { lockScroll } from "../motion/smoothScroll.js";
+import { closeWithExit, useDragDismiss } from "../motion/sheet.js";
 import ProductArt from "./ProductArt.jsx";
 import { BADGES, Offer } from "./ProductCard.jsx";
 
@@ -10,11 +11,13 @@ const round = { width: "44px", height: "44px", border: "1px solid rgba(0,0,0,0.1
 
 // Quick view popup for a product card: the whole photo gallery plus price and add to bag, in a
 // native modal <dialog> (focus stays inside, Esc and a backdrop click close it). Arrow keys
-// step through the photos. Bottom sheet on phones.
-export default function QuickView({ id, finish: startFinish, onClose }) {
+// step through the photos. On desktop it grows out of the card that opened it (`origin`) and
+// shrinks back into it; on phones it's a bottom sheet you can drag down to dismiss.
+export default function QuickView({ id, finish: startFinish, origin, onClose }) {
   const p = PRODUCTS[id];
   const { devices, addForModels } = useStore();
   const ref = useRef(null);
+  const grab = useRef(null);
   const titleId = useId();
   const imgs = p.imgs ?? (p.img ? [p.img] : []);
   const isGlass = p.kind === "glass";
@@ -26,15 +29,26 @@ export default function QuickView({ id, finish: startFinish, onClose }) {
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
-    ref.current.showModal();
+    const d = ref.current;
+    d.showModal();
+    // Anchor the scale to the card that was tapped, so the popup visibly comes from (and returns to) it.
+    const o = origin?.current?.getBoundingClientRect();
+    if (o) {
+      const r = d.getBoundingClientRect();
+      d.style.transformOrigin = `${o.left + o.width / 2 - r.left}px ${o.top + o.height / 2 - r.top}px`;
+    }
     lockScroll(true);
     return () => lockScroll(false);
-  }, []);
+  }, [origin]);
 
-  const close = () => ref.current.close(); // fires onClose
+  // Phones: pull the sheet down by its grabber. Already off screen, so it closes without the exit animation.
+  useDragDismiss(ref, { axis: "y", dir: 1, handleRef: grab, onDismiss: () => ref.current?.close() });
+
+  const close = () => closeWithExit(ref.current); // fires onClose once the exit animation ends
   const step = (d) => setI((x) => (x + d + imgs.length) % imgs.length);
   const add = () => {
     addForModels(id, 1, isGlass ? FINISHES[finish].name : undefined);
+    navigator.vibrate?.(10); // a light tick on the commit, same frame as the visual change
     setAdded(true);
     setTimeout(() => setAdded(false), 1600);
   };
@@ -46,9 +60,13 @@ export default function QuickView({ id, finish: startFinish, onClose }) {
       aria-labelledby={titleId}
       data-lenis-prevent
       onClose={onClose}
+      onCancel={(e) => e.cancelable && (e.preventDefault(), close())}
       onClick={(e) => e.target === e.currentTarget && close()}
       onKeyDown={(e) => imgs.length > 1 && (e.key === "ArrowRight" || e.key === "ArrowLeft") && step(e.key === "ArrowRight" ? 1 : -1)}
     >
+      <div ref={grab} className="qv-grab" aria-hidden="true">
+        <span />
+      </div>
       <button type="button" aria-label="Close quick view" onClick={close} style={{ ...round, position: "absolute", top: "16px", right: "16px", zIndex: 2 }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
           <path d="M6 6l12 12M18 6L6 18" />

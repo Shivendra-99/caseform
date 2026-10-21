@@ -1,55 +1,82 @@
-# SnapEdge storefront
+# SnapEdge Storefront
 
-React (Vite) storefront for SnapEdge iPhone covers and 9H glass. The homepage and product page follow the "SnapEdge Homepage" design canvas; the other shop and admin screens come from the earlier Stitch project.
+React (Vite) storefront for SnapEdge iPhone covers and 9H tempered glass. Features an Apple-inspired design language with fluid spring physics, streamlined product-first e-commerce UX, and a Shiprocket checkout integration.
 
 ```bash
 npm install
 npm run dev
 ```
 
-| Route | Screen |
-| --- | --- |
-| `/` | Home (SnapEdge design) |
-| `/product?id=<cover id>` | Cover product page (SnapEdge design); ids are the keys in `src/catalog.js` |
-| `/collection` | Cases & glass collection (Stitch) |
-| `/cart` | Shopping bag (Stitch) |
-| `/account` | Customer account (Stitch) |
-| `/signin` | Sign in (front-end only, no auth backend) |
-| `/admin` | Operations dashboard |
-| `/admin/inventory` | Catalog, SKU & inventory |
+## Routes & Screens
 
-- `src/catalog.js`: models, glass finishes and products. Covers (names + photos) come from `SnapEdge_FinalList.xlsx`; their prices, MRPs and weights are placeholders (TODO). The "50% off 9H glass with any cover" offer is applied there (`priceLines`), so every page and the cart agree on prices.
-- `src/store.jsx`: cart and selected iPhone model as shared app state, saved in localStorage.
-- SnapEdge pages use inline styles from the design plus the `.se-root` rules in `src/index.css` (hover states, phone menu, breakpoints). `src/components/ProductArt.jsx` shows a product's photo (`img`) or, for covers without a clean photo yet, an SVG drawing.
-- The Stitch screens' theme tokens live in `tailwind.config.js`.
-- Policy pages (`/policies/shipping`, `returns`, `warranty`, `privacy`, `terms`, `contact`) come from `src/policies.js`; business details are in `src/business.js`. Fill every `[bracketed]` value before launch.
+| Route | Screen | Description |
+| --- | --- | --- |
+| `/` | Home | Streamlined storefront: Hero carousel, Quick Model Selector, Best Sellers, Pick Your Protection lineup, and Trust Guarantee strip |
+| `/product?id=<cover id>` | Product Details | Full cover details, multi-angle gallery, model picker, and 50% off glass bundle offer; ids are keys in `src/catalog.js` |
+| `/collection` | Collection | Complete catalog filterable by category (Covers, Glass, Combos) and iPhone model |
+| `/cart` | Shopping Bag | Interactive bag with automatic glass 50% bundle discounts and free shipping calculator |
+| `/account` | Customer Account | Order history, saved addresses, and profile details |
+| `/signin` | Sign In | Authentication interface (branded for SnapEdge) |
+| `/admin` | Operations Dashboard | Orders, fulfillment metrics, and quick actions |
+| `/admin/inventory` | Inventory & Catalog | Real-time stock levels, SKU tracking, and Shiprocket catalog sync |
 
-## Checkout (Shiprocket)
+---
 
-Built to Shiprocket's "Checkout Integration Guide for Custom Websites" and its API docs. `api/` holds Vercel Functions; `npm run dev` serves them locally through a Vite middleware (`vite.config.js`).
+## Architecture & Components
+
+- **`src/components/ProductCard.jsx`**: The unified product card used across Best Sellers and The Lineup (`#lineup`).
+  - **Pillowed Card Structure**: Light grey outer frame (`#F6F6F6`, 22px radius) with an embedded white info container.
+  - **Hover-Triggered Quick View**: Hovering anywhere on the card (`.pcard:hover`) floats the tactile **"Quick view"** button with physical spring transitions.
+  - **Multi-Photo Cycling**: Auto-cycles through product angles on hover (1100ms interval) or swipe gestures on touchscreens.
+  - **Minimalist Clean Face**: Multi-variant finish pills removed from the card face to guarantee equal heights and zero visual clutter (finish selection deferred to Quick View or product page).
+  - **Direct Add**: Instant pointer-down haptic/visual confirmation on the circular bag button.
+- **`src/components/QuickView.jsx`**: Responsive quick-shop interface.
+  - **Desktop**: Dialog materializes directly from the clicked product card's bounding box using dynamic `transform-origin` and symmetric exit animations.
+  - **Mobile**: Becomes an iOS-style bottom sheet with drag-to-dismiss gesture physics, rubber-banding, and background scrim transitions.
+- **`src/components/StoreHeader.jsx`**: Sticky navigation header with Apple-inspired frosted glass material (`backdrop-filter: blur(20px)`), dynamic scroll-edge border, and a touch-gesture swipeable mobile drawer.
+- **`src/pages/Home.jsx`**: Streamlined homepage experience inspired by high-conversion, product-first e-commerce standards:
+  - **Removed Text Clutter**: Removed technical CAD wireframes and bloated multi-paragraph copy ("Engineered front and back" and "Help & guides").
+  - **Unified Showcase**: "Best Sellers" and "Pick your protection" both utilize the identical `<ProductCard>` design on clean `#FFFFFF` canvases.
+  - **Trust Guarantee Bar**: High-contrast, single-row trust strip (Free Express Delivery, 100% Fit Guarantee, 7-Day Replacements, Cash On Delivery).
+- **`src/catalog.js`**: Master catalog for products, iPhone models, and finishes:
+  - Studio photography and 3D renders mapped across all 25 catalog items (transparent MagSafe shells, black cases, titanium shades, and 9H tempered glass 2-packs).
+  - Uniform top-right badge assignments (`BEST SELLER`, `NEW`, `SALE`).
+  - Bundle pricing engine (`priceLines`): Automatically applies 50% discount on 9H tempered glass whenever a cover is added.
+- **`src/store.jsx`**: Global application state (selected iPhone models, shopping cart, persisted via `localStorage`).
+- **Policy Pages**: `/policies/shipping`, `returns`, `warranty`, `privacy`, `terms`, `contact` configured in `src/policies.js` and `src/business.js`.
+
+---
+
+## Motion & Physics Engine
+
+The site combines GSAP reveals with direct-manipulation Apple design spring physics:
+
+- **`src/motion/physics.js`**:
+  - `spring(t, { response, damping })`: Analytical spring evaluation for fluid, organic animations without abrupt stops.
+  - `project(pos, vel, decay)`: Momentum projection for flicks and releases.
+  - `rubberband(offset, dim, coeff)`: Logarithmic Apple-style resistance for boundary overdrag.
+  - `VelocityTracker`: Sampled pointer velocity tracker using exponential smoothing for natural swipe-to-dismiss gestures.
+- **`src/motion/sheet.js`**:
+  - `useDragDismiss`: Custom hook providing drag gesture tracking, rubberband resistance, velocity-threshold exit checks, and keyboard escape handling for modal dialogs and sheets.
+  - `closeWithExit(el, onDone)`: Orchestrates symmetric exit animations before unmounting.
+- **`src/motion/gsap.js`**: Central GSAP configuration defining the house rhythm (0.618s `house` ease) and `reducedMotion()` checks.
+- **`src/motion/smoothScroll.js`**: Lenis smooth scrolling integrated with the GSAP ticker.
+- **`src/motion/PageMotion.jsx`**: Route reveal choreography for headers and grid cards.
+
+---
+
+## Checkout & Backend (Shiprocket)
+
+Built according to Shiprocket's "Checkout Integration Guide for Custom Websites" using Vercel serverless functions in `api/`:
 
 | Endpoint | Purpose |
 | --- | --- |
-| `GET /api/catalog/products` | Shiprocket "Fetch Products" (paginated, `?page=1&limit=100`) |
-| `GET /api/catalog/collections` | Shiprocket "Fetch Collections" |
-| `GET /api/catalog/collection-products?collection_id=1` | Shiprocket "Fetch Products by Collection" |
-| `POST /api/checkout` | Re-prices the bag on the server and returns a Shiprocket checkout token |
-| `POST /api/shiprocket/order` | Order webhook; re-fetches the order from Shiprocket before trusting it |
+| `GET /api/catalog/products` | Paginated product feed for Shiprocket catalog sync (`?page=1&limit=100`) |
+| `GET /api/catalog/collections` | Fetch collections hierarchy |
+| `GET /api/catalog/collection-products?collection_id=1` | Products by collection |
+| `POST /api/checkout` | Re-verifies bag pricing on the server and returns a signed Shiprocket checkout token |
+| `POST /api/shiprocket/order` | Order status webhook (verifies payload with Shiprocket before processing) |
 
-- Each product × iPhone model (× finish, for glass) is one Shiprocket variant with a stable numeric id (`api/_lib/feed.js`). Keep `num`/`code` in `src/catalog.js` unchanged once synced.
-- The browser sends only ids, quantities, model and option; prices (including glass 50% off with a cover) are computed by `api/_lib/quote.js` and passed to Shiprocket per item. `npm test` covers pricing, variant ids, feed completeness and HMAC signing.
-- Requests to Shiprocket are signed: `X-Api-HMAC-SHA256` = base64 HMAC-SHA256 of the body with the secret (`api/_lib/shiprocket.js`).
-- Shiprocket returns buyers to `/order/confirmed?oid=…&ost=SUCCESS`.
-- After changing products or prices: deploy, then `SITE_URL=https://your-domain node --env-file=.env.local scripts/sync-catalog.js`.
-- Product images: cover photos are `public/products/*.jpg`; glass, lens and covers without a clean photo use the drawings in `public/products/*.png`. Weights (`grams`) and stock in the catalog are estimates.
-- Orders aren't stored yet (no database): they appear in the Vercel logs and the Shiprocket dashboard.
-- `vercel.json` rewrites every non-API path to `index.html`, so reloading `/product` and other routes works on Vercel.
-
-## Motion
-
-- `src/motion/gsap.js`: the only place GSAP is imported. It registers plugins and sets the house rhythm (0.618s, `house` ease; also available in Tailwind as `duration-house` / `ease-house`).
-- `src/motion/smoothScroll.js`: Lenis smooth scrolling on the shop pages, driven by the GSAP ticker, with anchor links landing below the sticky header.
-- `src/motion/PageMotion.jsx`: reveals for each route. Plain-text `h1`/`h2` (or ones marked `data-split`) reveal line by line, and `<article>` cards and children of `[data-reveal]` fade up. Wrap a section in `data-motion-skip` to opt it out.
-- The homepage hero's exploded view animates apart on load (case and glass separate from the phone).
-- With `prefers-reduced-motion`, Lenis and all of the above are off.
-- Add `?debug` to the URL to show ScrollTrigger markers.
+- **Security & Integrity**: Requests signed with `X-Api-HMAC-SHA256` HMAC-SHA256 digests. Client-side prices are never trusted; the server calculates prices via `api/_lib/quote.js`.
+- **Variant Mapping**: Every product × iPhone model combination generates a deterministic, stable Shiprocket variant ID (`api/_lib/feed.js`).
+- **Catalog Sync**: Run `SITE_URL=https://your-domain node --env-file=.env.local scripts/sync-catalog.js` after catalog modifications.

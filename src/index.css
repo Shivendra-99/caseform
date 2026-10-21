@@ -12,26 +12,54 @@
 
 /* SnapEdge design (header, footer, home, product). Scoped to .se-root so the
    older Stitch pages are untouched; !important rules override the inline styles. */
-.se-font { font-family: 'Sora', 'Helvetica Neue', Helvetica, sans-serif; color: #222222; font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+.se-font { font-family: 'Sora', 'Helvetica Neue', Helvetica, sans-serif; color: #222222; font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-optical-sizing: auto; }
 .se-root, .se-root * { box-sizing: border-box; }
 .se-root a { color: #222222; text-decoration: none; }
-.se-root a:hover { color: #000000; }
 .se-root [id] { scroll-margin-top: 76px; }
 .se-root .sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-.se-root .nav-a:hover { text-decoration: underline; text-underline-offset: 7px; text-decoration-thickness: 1.5px; }
-.se-root .btn-solid:hover { background: #2A2A2A !important; }
-.se-root .btn-white:hover { background: #E6E6E6 !important; }
-.se-root .btn-ghost-dark:hover { background: #FFFFFF !important; color: #000000 !important; }
-.se-root .btn-ghost:hover { background: #222222 !important; color: #FFFFFF !important; }
-.se-root .model-select:hover { background: #F4F4F4 !important; }
+/* Headings break into even lines; body copy avoids one-word last lines. */
+.se-root :is(h1, h2, h3) { text-wrap: balance; }
+.se-root p { text-wrap: pretty; }
+/* Hover styles only where there is a real hover; on touch screens they'd stick after a tap. */
+@media (hover: hover) {
+  .se-root a:hover { color: #000000; }
+  .se-root .nav-a:hover { text-decoration: underline; text-underline-offset: 7px; text-decoration-thickness: 1.5px; }
+  .se-root .btn-solid:hover { background: #2A2A2A !important; }
+  .se-root .btn-white:hover { background: #E6E6E6 !important; }
+  .se-root .btn-ghost-dark:hover { background: #FFFFFF !important; color: #000000 !important; }
+  .se-root .btn-ghost:hover { background: #222222 !important; color: #FFFFFF !important; }
+  .se-root .model-select:hover { background: #F4F4F4 !important; }
+  .se-root .card:hover .card-img { background: #ECECEC !important; }
+  .se-root .line:hover { border-color: #222222 !important; }
+  .se-root .help:hover { background: #ECECEC !important; }
+  .se-root .foot a:hover { color: #000000; }
+  .se-root .icon-btn:hover { background: rgba(0, 0, 0, 0.05); }
+}
 .se-root .model-select:focus-visible { outline: 2px solid #000000; outline-offset: 3px; }
 .se-root .model-search:focus { outline: 2px solid #000000; outline-offset: 1px; }
 .se-root .hero-media { --fan-w: 190px; --fan-step: 1.9px; }
-.se-root .card:hover .card-img { background: #ECECEC !important; }
-.se-root .line:hover { border-color: #222222 !important; }
-.se-root .help:hover { background: #ECECEC !important; }
 .se-root .foot a { color: #555555; }
-.se-root .foot a:hover { color: #000000; }
+
+/* Press feedback (Apple: respond on pointer-down, not on release). Buttons give a little the instant
+   they're pressed and ease back on release. Uses the `scale` property, so it composes with any inline
+   `transform` a button already has. */
+.se-root :is(button, .btn-solid, .btn-white, .btn-ghost, .btn-ghost-dark, .icon-btn) { transition: scale 200ms cubic-bezier(0.2, 0.8, 0.2, 1); -webkit-tap-highlight-color: transparent; }
+.se-root :is(button, .btn-solid, .btn-white, .btn-ghost, .btn-ghost-dark, .icon-btn):not(:disabled):active { scale: 0.96; transition-duration: 80ms; }
+.se-root .pcard-img:active { scale: 0.985 !important; } /* a big photo only needs a hint */
+.se-root.menu-drawer .menu-row:active { opacity: 0.5; scale: none; transition-duration: 0ms; } /* full-width rows dim instead */
+
+/* Sticky header as a translucent material: the page scrolls underneath, blurred. Instead of a
+   permanent divider, a hairline appears only once content is actually beneath it. */
+.se-header { background: rgba(255, 255, 255, 0.72); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0); transition: box-shadow 200ms ease; }
+.se-header[data-scrolled] { box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.08); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .se-header { background: #FFFFFF; } }
+@media (prefers-reduced-transparency: reduce) { .se-header { background: #FFFFFF; -webkit-backdrop-filter: none; backdrop-filter: none; } }
+@media (prefers-contrast: more) { .se-header { background: #FFFFFF; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: inset 0 -1px 0 #000000; } }
+
+/* Bag badge: a small pop when an item is added, so it's clear what the tap did. */
+.cart-badge.bump { animation: badge-pop 420ms cubic-bezier(0.34, 1.5, 0.64, 1); }
+@keyframes badge-pop { 0% { scale: 0.4; } 100% { scale: 1; } }
+@media (prefers-reduced-motion: reduce) { .cart-badge.bump { animation: fade-in 200ms ease; } }
 .se-root .menu-btn { display: none !important; }
 @media (max-width: 1360px) {
   .se-root .nav { display: none !important; }
@@ -79,45 +107,84 @@
 .pcard-dots { opacity: 0; transition: opacity 200ms ease; }
 .pcard:hover .pcard-dots, .pcard-img:focus-visible .pcard-dots { opacity: 1; }
 .pcard-qv { position: absolute; left: 50%; bottom: 30px; transform: translate(-50%, 6px); padding: 9px 16px; border-radius: 40px; background: #FFFFFF; color: #111111; font-size: 13px; font-weight: 600; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08); opacity: 0; pointer-events: none; white-space: nowrap; transition: opacity 200ms ease, transform 200ms ease; }
-.pcard-img:hover .pcard-qv, .pcard-img:focus-visible .pcard-qv { opacity: 1; transform: translate(-50%, 0); }
+.pcard:hover .pcard-qv, .pcard-img:focus-visible .pcard-qv { opacity: 1; transform: translate(-50%, 0); }
+.pcard-img:active .pcard-qv { transform: translate(-50%, 1px) scale(0.97); }
 @media (hover: none) { .pcard-dots { opacity: 1; } .pcard-qv { display: none; } }
-.pcard-add:not([data-added]):hover { background: #F0F0F0 !important; }
-.pcard-name a:hover { text-decoration: underline; text-underline-offset: 3px; }
+@media (hover: hover) {
+  .pcard-add:not([data-added]):hover { background: #F0F0F0 !important; }
+  .pcard-name a:hover { text-decoration: underline; text-underline-offset: 3px; }
+}
 .pbadge { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 6px; color: #FFFFFF; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
 
-/* Quick view (QuickView.jsx): centred modal on desktop, bottom sheet on phones. */
-.qv { margin: auto; padding: 0; border: 0; width: min(1000px, 94vw); max-width: none; max-height: 92dvh; border-radius: 28px; background: #FFFFFF; color: #111111; overflow: auto; }
-.qv::backdrop { background: rgba(0, 0, 0, 0.5); }
-.qv[open] { animation: qv-in 320ms cubic-bezier(0.16, 1, 0.3, 1); }
+/* Shared by the modal dialogs below. Exits mirror the enter curve (expo-out in, expo-in out) and are
+   a little quicker; motion/sheet.js sets [data-closing] and waits for the exit before closing. */
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes fade-out { to { opacity: 0; } }
+
+/* Quick view (QuickView.jsx): centred modal on desktop, bottom sheet on phones.
+   Desktop: it materializes out of the card that opened it (transform-origin is set from JS to the
+   card), scale and blur together like a real surface arriving, then shrinks back into the card.
+   The backdrop dims and softly blurs the page: a modal task, so focus goes to the sheet. */
+.qv { margin: auto; padding: 0; border: 0; width: min(1000px, 94vw); max-width: none; max-height: 92dvh; border-radius: 28px; background: #FFFFFF; color: #111111; overflow: auto; box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.35); }
+.qv::backdrop { background: rgba(0, 0, 0, 0.4); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.qv[open] { animation: qv-in 440ms cubic-bezier(0.16, 1, 0.3, 1); }
 .qv[open]::backdrop { animation: fade-in 320ms ease; }
+.qv[open][data-closing] { animation: qv-out 220ms cubic-bezier(0.7, 0, 0.84, 0) forwards; }
+.qv[open][data-closing]::backdrop, .qv[data-dismissing]::backdrop { animation: fade-out 220ms ease forwards; }
 .qv-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 36px; padding: 28px; }
-@keyframes qv-in { from { opacity: 0; transform: translateY(16px) scale(0.98); } }
+@keyframes qv-in { from { opacity: 0; scale: 0.88; filter: blur(8px); } }
+@keyframes qv-out { to { opacity: 0; scale: 0.88; filter: blur(8px); } }
+/* Grabber for dragging the phone sheet down (QuickView.jsx + sheet.js). */
+.qv-grab { display: none; align-items: center; justify-content: center; height: 32px; touch-action: none; cursor: grab; }
+.qv-grab span { width: 40px; height: 5px; border-radius: 3px; background: rgba(0, 0, 0, 0.18); }
 @media (max-width: 760px) {
-  .qv { width: 100vw; max-height: 94dvh; margin: auto 0 0; border-radius: 24px 24px 0 0; }
-  .qv-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 20px 16px 24px; }
+  .qv { width: 100vw; max-height: 94dvh; margin: auto 0 0; border-radius: 24px 24px 0 0; box-shadow: none; }
+  .qv-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 4px 16px 24px; }
+  .qv-grab { display: flex; }
+  /* The sheet rises from the bottom edge and leaves the same way. */
+  .qv[open] { animation: sheet-in 460ms cubic-bezier(0.32, 0.72, 0, 1); }
+  .qv[open][data-closing] { animation: sheet-out 260ms cubic-bezier(1, 0, 0.68, 0.28) forwards; }
 }
-@media (prefers-reduced-motion: reduce) { .qv[open], .qv[open]::backdrop { animation: none; } }
+@keyframes sheet-in { from { transform: translateY(100%); } }
+@keyframes sheet-out { to { transform: translateY(100%); } }
+/* Reduced motion: a gentle cross-fade instead of scaling or sliding. */
+@media (prefers-reduced-motion: reduce) {
+  .qv[open], .qv[open]::backdrop { animation: fade-in 200ms ease; }
+  .qv[open][data-closing], .qv[open][data-closing]::backdrop { animation: fade-out 150ms ease forwards; }
+}
 
 /* Menu drawer (StoreHeader.jsx): a modal <dialog> sliding in from the left. Quiet type (Geist
-   semibold, normal tracking), one list, generous space; the only colour is the black account pill. */
+   semibold, normal tracking), one list, generous space; the only colour is the black account pill.
+   It leaves to the left, the way it came, by button, Esc, backdrop or a swipe (sheet.js). */
 .menu-drawer { margin: 0; padding: 0; border: 0; width: min(600px, 92vw); max-width: none; height: 100dvh; max-height: none; background: #FFFFFF; color: #111111; border-radius: 0 32px 32px 0; overflow: hidden; font-family: 'Geist', 'Sora', system-ui, sans-serif; }
-.menu-drawer::backdrop { background: rgba(0, 0, 0, 0.45); }
+.menu-drawer, .menu-drawer * { touch-action: pan-y; } /* vertical scroll stays native; sideways is the dismiss swipe */
+.menu-drawer::backdrop { background: rgba(0, 0, 0, 0.4); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
 .menu-drawer .menu-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; font-family: inherit; font-size: 32px; line-height: 1.2; font-weight: 600; letter-spacing: -0.02em; color: #111111; transition: opacity 150ms ease; }
-.menu-drawer .menu-row:hover { opacity: 0.6; }
 .menu-drawer .menu-value { font-size: 15px; font-weight: 500; letter-spacing: 0; color: #666666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.menu-drawer .menu-back:hover { opacity: 0.6; }
+@media (hover: hover) {
+  .menu-drawer .menu-row:hover { opacity: 0.6; }
+  .menu-drawer .menu-back:hover { opacity: 0.6; }
+  .menu-drawer .menu-social:hover { background: #E9E9E9; }
+}
 .menu-drawer[open] { animation: drawer-in 380ms cubic-bezier(0.16, 1, 0.3, 1); }
 .menu-drawer[open]::backdrop { animation: fade-in 380ms ease; }
 .menu-drawer[open] .menu-link { animation: link-in 480ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: calc(var(--i) * 40ms + 100ms); }
+.menu-drawer[open][data-closing] { animation: drawer-out 260ms cubic-bezier(0.7, 0, 0.84, 0) forwards; }
+.menu-drawer[open][data-closing]::backdrop, .menu-drawer[data-dismissing]::backdrop { animation: fade-out 260ms ease forwards; }
 @keyframes drawer-in { from { transform: translateX(-100%); } }
-@keyframes fade-in { from { opacity: 0; } }
+@keyframes drawer-out { to { transform: translateX(-100%); } }
 @keyframes link-in { from { opacity: 0; transform: translateX(-20px); } }
 @media (max-width: 560px) {
   .menu-drawer .menu-row { font-size: 26px; padding: 10px 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .menu-drawer[open], .menu-drawer[open]::backdrop, .menu-drawer[open] .menu-link { animation: none; }
+  .menu-drawer[open] .menu-link { animation: none; }
+  .menu-drawer[open], .menu-drawer[open]::backdrop { animation: fade-in 200ms ease; }
+  .menu-drawer[open][data-closing], .menu-drawer[open][data-closing]::backdrop { animation: fade-out 150ms ease forwards; }
+}
+/* Less transparency: a plain dim scrim, no blur. */
+@media (prefers-reduced-transparency: reduce) {
+  .qv::backdrop, .menu-drawer::backdrop { background: rgba(0, 0, 0, 0.55); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 @media (max-width: 560px) { .pcard-img { aspect-ratio: 1 / 1 !important; } }
-.menu-drawer .menu-social:hover { background: #E9E9E9; }
 .qv :focus-visible, .menu-drawer :focus-visible { outline: 2px solid #111111; outline-offset: 2px; }

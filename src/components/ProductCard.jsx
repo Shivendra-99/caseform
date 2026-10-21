@@ -38,7 +38,7 @@ export default function ProductCard({ id }) {
   const badge = BADGES[p.badge];
   const [shown, setShown] = useState(0);
   const [hover, setHover] = useState(false);
-  const [finish, setFinish] = useState(p.def);
+  const finish = p.def;
   const [added, setAdded] = useState(false);
   const [quick, setQuick] = useState(false);
   const swipeX = useRef(null);
@@ -61,6 +61,7 @@ export default function ProductCard({ id }) {
   };
   const add = () => {
     addForModels(id, 1, isGlass ? FINISHES[finish].name : undefined);
+    navigator.vibrate?.(10); // a light tick on the commit, same frame as the visual change
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
@@ -124,7 +125,7 @@ export default function ProductCard({ id }) {
               p.name
             )}
           </h3>
-          <button type="button" className="pcard-add" data-added={added || undefined} aria-label={`Add ${p.name}${isGlass ? `, ${FINISHES[finish].name}` : ""} to bag${forModels}`} onClick={add} style={{ width: "44px", height: "44px", flexShrink: "0", border: "0", borderRadius: "50px", background: added ? "#111111" : "transparent", color: added ? "#FFFFFF" : "#111111", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "background-color 150ms ease, color 150ms ease" }}>
+          <button type="button" className="pcard-add" data-added={added || undefined} aria-label={`Add ${p.name}${isGlass ? `, ${FINISHES[finish].name}` : ""} to bag${forModels}`} onClick={add} style={{ width: "44px", height: "44px", flexShrink: "0", border: "0", borderRadius: "50px", background: added ? "#111111" : "transparent", color: added ? "#FFFFFF" : "#111111", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "background-color 150ms ease, color 150ms ease, scale 200ms cubic-bezier(0.2, 0.8, 0.2, 1)" }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               {added ? (
                 <path d="M5 12.5l4.5 4.5L19 7.5" />
@@ -142,15 +143,6 @@ export default function ProductCard({ id }) {
           {p.mrp > p.price && <s style={{ fontSize: "14px", color: "#8A8A8A" }}>{inr(p.mrp)}</s>}
         </div>
         <Offer p={p} />
-        {isGlass && (
-          <div role="group" aria-label={`${p.name} finish`} style={{ display: "flex", flexWrap: "wrap", gap: "6px", paddingTop: "4px" }}>
-            {FINISHES.map((f, i) => (
-              <button key={f.name} type="button" aria-pressed={i === finish} onClick={() => setFinish(i)} style={{ height: "34px", padding: "0 12px", borderRadius: "40px", border: `1px solid ${i === finish ? "#111111" : "#DDDDDD"}`, background: i === finish ? "#111111" : "#FFFFFF", color: i === finish ? "#FFFFFF" : "#222222", fontFamily: "inherit", fontSize: "12px", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>
-                {f.name}
-              </button>
-            ))}
-          </div>
-        )}
         <span role="status" className="sr-only">
           {added ? `Added ${p.name} to bag` : ""}
         </span>
@@ -160,6 +152,7 @@ export default function ProductCard({ id }) {
         <QuickView
           id={id}
           finish={finish}
+          origin={photoBtn}
           onClose={() => {
             setQuick(false);
             photoBtn.current?.focus(); // back to the card that opened it

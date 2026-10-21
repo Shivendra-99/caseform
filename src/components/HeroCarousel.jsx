@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { PRODUCTS, inr } from "../catalog.js";
 import { reducedMotion } from "../motion/gsap.js";
+import { spring, project, rubberband, velocityTracker } from "../motion/physics.js";
 
 const ROTATE_MS = 6000;
 const mono = { fontFamily: "'IBM Plex Mono', ui-monospace, monospace" };
@@ -48,14 +49,73 @@ function Media({ slide, on }) {
 
 // Homepage hero: a photo-led carousel of collections. Auto-advances every 6s unless the
 // shopper hovers, focuses inside, presses pause, or prefers reduced motion (WCAG 2.2.2).
+// On touch, the slide follows the finger (with resistance) so a swipe hints where it's going;
+// on release the flick's momentum decides next/previous and a spring settles it.
 export default function HeroCarousel() {
   const [index, setIndex] = useState(0);
   const [userPaused, setUserPaused] = useState(reducedMotion);
   const [held, setHeld] = useState(false); // hover or keyboard focus inside
-  const swipeX = useRef(null);
+  const track = useRef(null);
+  const drag = useRef(null); // { x, y, dx, active } while a finger is down
+  const settle = useRef(null);
+  const swiped = useRef(false); // a swipe must not also click the CTA under the finger
+  const vt = useRef(velocityTracker());
   const count = SLIDES.length;
   const go = (i) => setIndex((i + count) % count);
   const playing = !userPaused && !held;
+
+  // Offset the slide by `x` px; it fades a little as it's pulled away.
+  const place = (x) => {
+    const el = track.current;
+    const w = el.offsetWidth || 1;
+    el.style.translate = x ? `${x}px 0` : "";
+    el.style.opacity = x ? String(1 - Math.min(Math.abs(x) / w, 0.5)) : "";
+  };
+
+  const onPointerDown = (e) => {
+    if (e.pointerType === "mouse" || reducedMotion()) return;
+    const from = settle.current ? settle.current.stop().value : 0; // grab it mid-settle
+    settle.current = null;
+    drag.current = { x: e.clientX, y: e.clientY, from, offset: from, active: false };
+    vt.current.reset();
+  };
+  const onPointerMove = (e) => {
+    const d = drag.current;
+    if (!d) return;
+    const dx = e.clientX - d.x;
+    if (!d.active) {
+      if (Math.hypot(dx, e.clientY - d.y) < 10) return;
+      if (Math.abs(e.clientY - d.y) > Math.abs(dx)) return void (drag.current = null); // vertical: page scroll
+      d.active = true;
+      d.x = e.clientX;
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }
+    d.raw = d.from + e.clientX - d.x;
+    d.offset = rubberband(d.raw, track.current.offsetWidth);
+    place(d.offset);
+    vt.current.add(e.clientX);
+  };
+  const onPointerUp = (e) => {
+    const d = drag.current;
+    drag.current = null;
+    if (!d?.active) return;
+    swiped.current = true;
+    setTimeout(() => (swiped.current = false));
+    const v = e.type === "pointercancel" ? 0 : vt.current.velocity();
+    const rest = d.raw + project(v, 0.99);
+    const commit = Math.abs(rest) > 60 && Math.sign(rest) === Math.sign(v || rest);
+    if (commit) go(index + (rest < 0 ? 1 : -1));
+    settle.current = spring({
+      from: d.offset,
+      to: 0,
+      velocity: v * 0.3, // the slide moved at roughly a third of the finger's speed under resistance
+      damping: commit ? 1 : 0.8,
+      response: 0.35,
+      onUpdate: place,
+      onComplete: () => (settle.current = null),
+    });
+  };
+  useEffect(() => () => settle.current?.stop(), []);
 
   useEffect(() => {
     if (!playing) return;
@@ -75,15 +135,14 @@ export default function HeroCarousel() {
           onMouseLeave={() => setHeld(false)}
           onFocus={() => setHeld(true)}
           onBlur={(e) => !e.currentTarget.contains(e.relatedTarget) && setHeld(false)}
-          onPointerDown={(e) => (swipeX.current = e.pointerType === "mouse" ? null : e.clientX)}
-          onPointerUp={(e) => {
-            const dx = swipeX.current == null ? 0 : e.clientX - swipeX.current;
-            if (Math.abs(dx) > 50) go(index + (dx < 0 ? 1 : -1));
-            swipeX.current = null;
-          }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          onClickCapture={(e) => swiped.current && (e.preventDefault(), e.stopPropagation())}
           style={{ position: "relative", display: "grid", borderRadius: "28px", overflow: "hidden", background: SLIDES[index].bg, transition: "background-color 600ms ease", touchAction: "pan-y" }}
         >
-          <div aria-live={playing ? "off" : "polite"} style={{ display: "grid" }}>
+          <div ref={track} aria-live={playing ? "off" : "polite"} style={{ display: "grid" }}>
             {SLIDES.map((s, i) => {
               const on = i === index;
               return (
@@ -120,7 +179,7 @@ export default function HeroCarousel() {
           <div className="hero-ctrl" style={{ position: "absolute", left: "64px", right: "64px", bottom: "28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px" }}>
             <div style={{ display: "flex", alignItems: "center" }}>
               {SLIDES.map((s, i) => (
-                <button key={s.kicker} type="button" aria-label={`Show slide ${i + 1}: ${s.kicker}`} aria-current={i === index ? "true" : undefined} onClick={() => go(i)} style={{ width: i === index ? "44px" : "24px", height: "44px", padding: "0", border: "0", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "width 300ms ease" }}>
+                <button key={s.kicker} type="button" aria-label={`Show slide ${i + 1}: ${s.kicker}`} aria-current={i === index ? "true" : undefined} onClick={() => go(i)} style={{ width: i === index ? "44px" : "24px", height: "44px", padding: "0", border: "0", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "width 300ms ease, scale 200ms cubic-bezier(0.2, 0.8, 0.2, 1)" }}>
                   <span style={{ width: i === index ? "28px" : "8px", height: "8px", borderRadius: "8px", background: i === index ? "#111111" : "rgba(0,0,0,0.25)", transition: "width 300ms ease, background-color 300ms ease" }} />
                 </button>
               ))}
