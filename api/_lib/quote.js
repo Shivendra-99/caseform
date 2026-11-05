@@ -1,4 +1,4 @@
-import { PRODUCTS, MODELS, optionsFor, priceLines, shippingFor } from "../../src/catalog.js";
+import { PRODUCTS, MODELS, isRetired, optionsFor, priceLines, shippingFor, stockLeft } from "../../src/catalog.js";
 import { HttpError } from "./http.js";
 
 const MAX_LINES = 20;
@@ -16,8 +16,11 @@ export function quote(items) {
     if (!p) throw new HttpError(400, "An item in your bag is no longer available. Remove it and try again.");
     if (!Number.isInteger(it.qty) || it.qty < 1 || it.qty > MAX_QTY) throw new HttpError(400, `Quantity for ${p.name} must be between 1 and ${MAX_QTY}.`);
     if (!MODELS.includes(it.device)) throw new HttpError(400, `Choose an iPhone model for ${p.name}.`);
+    if (isRetired(it.device)) throw new HttpError(409, `We no longer sell ${p.name} for ${it.device}. Remove it from your bag and try again.`);
     const options = optionsFor(p);
     if (options ? !options.some((o) => o.name === it.variant) : it.variant != null) throw new HttpError(400, `Choose a valid option for ${p.name}.`);
+    // Untracked products aren't sold for newly added models. (Tracked stock is checked when it's reserved.)
+    if (!p.stock && stockLeft(p, MODELS.indexOf(it.device)) < 1) throw new HttpError(409, `${p.name} isn't available for ${it.device}. Remove it from your bag and try again.`);
     return { id: it.id, qty: it.qty, device: it.device, variant: options ? it.variant : undefined };
   });
 

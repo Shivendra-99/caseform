@@ -43,3 +43,13 @@ test("client-sent prices are ignored", () => {
   const q = quote([{ id: "military", qty: 2, device: M, price: 1, unitPrice: 1 }]);
   assert.equal(q.total, 2598);
 });
+
+test("covers with colours: must pick one, and the first keeps the old variant id", async () => {
+  const { PRODUCTS, variantId } = await import("../../src/catalog.js");
+  const { parseVariantId } = await import("./feed.js");
+  assert.equal(quote([{ id: "silicone", qty: 1, device: M, variant: "Blue" }]).lines[0].variant, "Blue");
+  assert.throws(() => quote([{ id: "silicone", qty: 1, device: M }]), /valid option/);
+  assert.throws(() => quote([{ id: "silicone", qty: 1, device: M, variant: "Pink" }]), /valid option/);
+  assert.equal(variantId(PRODUCTS.silicone, 0, 0), 124000); // same id the colourless cover had
+  assert.deepEqual(parseVariantId(124002), { id: "silicone", device: M, variant: "Blue" });
+});

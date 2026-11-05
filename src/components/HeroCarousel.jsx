@@ -15,11 +15,17 @@ const SLIDES = [
   { kicker: "Military Anti-Fall Case", title: ["Built for", "the drop."], text: "Rugged armour corners and a raised guard around the camera.", cta: "Shop Military Case", ids: ["military"], bg: "#ECEAE5", look: "cutout" },
   { kicker: "Liquid Silicone Case", title: ["Soft to hold,", "easy to grip."], text: "Soft-touch liquid silicone with MagSafe built in.", cta: "Shop Silicone Case", ids: ["silicone"], bg: "#E5EDF4", look: "cutout" },
   { kicker: "Clear Case – Apple Original Card Shape", title: ["Show off", "your iPhone."], text: "An Apple-style clear shell with a metal camera frame and MagSafe.", cta: "Shop Clear Case", ids: ["clear-card-shape"], bg: "#EDF0F1", look: "cutout" },
-].map((s) => {
-  const items = s.ids.map((id) => PRODUCTS[id]);
-  const price = Math.min(...items.map((p) => p.price));
-  return { ...s, to: `/product?id=${s.ids[0]}`, price: (items.length > 1 ? "From " : "") + inr(price), mrp: items.length > 1 ? null : inr(items[0].mrp) };
-});
+];
+// Prices come from the live catalog, so they're worked out at render time; a slide whose products
+// are all hidden in /admin is skipped.
+const slidesNow = () =>
+  SLIDES.map((s) => ({ ...s, ids: s.ids.filter((id) => PRODUCTS[id]) }))
+    .filter((s) => s.ids.length)
+    .map((s) => {
+      const items = s.ids.map((id) => PRODUCTS[id]);
+      const price = Math.min(...items.map((p) => p.price));
+      return { ...s, to: `/product?id=${s.ids[0]}`, price: (items.length > 1 ? "From " : "") + inr(price), mrp: items.length > 1 ? null : inr(items[0].mrp) };
+    });
 
 // Five photo cards in a gentle arc; the outer two hide on phones (.fan-outer).
 const FAN = [
@@ -38,7 +44,7 @@ function Media({ slide, on }) {
   return (
     <div style={{ ...move, position: "relative", width: "100%", height: "100%" }}>
       {FAN.map((f, slot) => {
-        const p = PRODUCTS[slide.ids[fanOrder[slot]]];
+        const p = PRODUCTS[slide.ids[fanOrder[slot] % slide.ids.length]];
         return (
           <img key={slot} src={p.img} alt={slot === 2 ? p.name : ""} className={slot === 0 || slot === 4 ? "fan-card fan-outer" : "fan-card"} style={{ position: "absolute", left: "50%", top: "50%", zIndex: f.z, width: "var(--fan-w)", aspectRatio: "1 / 1.92", objectFit: "cover", borderRadius: "18px", boxShadow: "0 24px 48px -16px rgba(30, 20, 50, 0.35)", transform: `translate(-50%, -50%) translate(calc(${f.x} * var(--fan-step)), ${f.y}px) rotate(${f.r}deg)` }} />
         );
@@ -60,7 +66,8 @@ export default function HeroCarousel() {
   const settle = useRef(null);
   const swiped = useRef(false); // a swipe must not also click the CTA under the finger
   const vt = useRef(velocityTracker());
-  const count = SLIDES.length;
+  const [slides] = useState(slidesNow);
+  const count = slides.length;
   const go = (i) => setIndex((i + count) % count);
   const playing = !userPaused && !held;
 
@@ -140,10 +147,10 @@ export default function HeroCarousel() {
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
           onClickCapture={(e) => swiped.current && (e.preventDefault(), e.stopPropagation())}
-          style={{ position: "relative", display: "grid", borderRadius: "28px", overflow: "hidden", background: SLIDES[index].bg, transition: "background-color 600ms ease", touchAction: "pan-y" }}
+          style={{ position: "relative", display: "grid", borderRadius: "28px", overflow: "hidden", background: slides[index].bg, transition: "background-color 600ms ease", touchAction: "pan-y" }}
         >
           <div ref={track} aria-live={playing ? "off" : "polite"} style={{ display: "grid" }}>
-            {SLIDES.map((s, i) => {
+            {slides.map((s, i) => {
               const on = i === index;
               return (
                 <div key={s.kicker} role="group" aria-roledescription="slide" aria-label={`${i + 1} of ${count}: ${s.kicker}`} aria-hidden={!on} inert={!on} className="hero-slide" style={{ gridArea: "1 / 1", background: s.bg, display: "grid", gridTemplateColumns: "minmax(0, 5fr) minmax(0, 7fr)", alignItems: "center", gap: "40px", minHeight: "560px", padding: "56px 64px 112px", opacity: on ? 1 : 0, visibility: on ? "visible" : "hidden", transition: on ? "opacity 450ms ease 180ms, visibility 0s" : "opacity 180ms ease, visibility 0s 180ms" }}>
@@ -178,7 +185,7 @@ export default function HeroCarousel() {
 
           <div className="hero-ctrl" style={{ position: "absolute", left: "64px", right: "64px", bottom: "28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px" }}>
             <div style={{ display: "flex", alignItems: "center" }}>
-              {SLIDES.map((s, i) => (
+              {slides.map((s, i) => (
                 <button key={s.kicker} type="button" aria-label={`Show slide ${i + 1}: ${s.kicker}`} aria-current={i === index ? "true" : undefined} onClick={() => go(i)} style={{ width: i === index ? "44px" : "24px", height: "44px", padding: "0", border: "0", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "width 300ms ease, scale 200ms cubic-bezier(0.2, 0.8, 0.2, 1)" }}>
                   <span style={{ width: i === index ? "28px" : "8px", height: "8px", borderRadius: "8px", background: i === index ? "#111111" : "rgba(0,0,0,0.25)", transition: "width 300ms ease, background-color 300ms ease" }} />
                 </button>

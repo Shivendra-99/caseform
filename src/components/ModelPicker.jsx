@@ -8,8 +8,8 @@ const icon = { position: "absolute", top: "50%", transform: "translateY(-50%)", 
 // value: selected models; onChange gets the new list. The last ticked model can't be unticked.
 // labelledBy / describedBy: ids of the visible label and helper text placed next to it.
 // inline: show the search + list in place (no trigger button), e.g. as a menu drawer sub-view;
-// its Done button calls onDone.
-export default function ModelPicker({ value, onChange, labelledBy, describedBy, inline = false, onDone }) {
+// its Done button calls onDone. compact: a 44px form-field trigger for dense layouts (Product buy box).
+export default function ModelPicker({ value, onChange, labelledBy, describedBy, inline = false, onDone, compact = false }) {
   const [opened, setOpen] = useState(false);
   const open = inline || opened;
   const [query, setQuery] = useState("");
@@ -75,16 +75,16 @@ export default function ModelPicker({ value, onChange, labelledBy, describedBy, 
       <span id={`${id}-all`} hidden>
         {modelsText(value)}
       </span>
-      <button ref={buttonRef} type="button" className="model-select" aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? `${id}-panel` : undefined} aria-labelledby={`${labelledBy} ${id}-all`} aria-describedby={describedBy} onClick={() => (open ? close(true) : setOpen(true))} style={{ position: "relative", display: "block", width: "100%", height: "56px", padding: "0 52px 0 54px", borderRadius: "50px", border: "1.5px solid #222222", background: "#FFFFFF", color: "#222222", fontFamily: "inherit", fontSize: "16px", fontWeight: "700", textAlign: "left", cursor: "pointer" }}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#222222" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ ...icon, left: "22px" }}>
+      <button ref={buttonRef} type="button" className={compact ? "model-select is-compact" : "model-select"} aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? `${id}-panel` : undefined} aria-labelledby={`${labelledBy} ${id}-all`} aria-describedby={describedBy} onClick={() => (open ? close(true) : setOpen(true))} style={{ position: "relative", display: "block", width: "100%", textAlign: "left", cursor: "pointer", background: "#FFFFFF", color: "#222222", fontFamily: "inherit", ...(compact ? { height: "44px", padding: "0 40px 0 42px", borderRadius: "12px", border: "1px solid #CFCFCF", fontSize: "15px", fontWeight: "500" } : { height: "56px", padding: "0 52px 0 54px", borderRadius: "50px", border: "1.5px solid #222222", fontSize: "16px", fontWeight: "700" }) }}>
+        <svg width={compact ? 18 : 20} height={compact ? 18 : 20} viewBox="0 0 24 24" fill="none" stroke="#222222" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ ...icon, left: compact ? "14px" : "22px" }}>
           <rect x="6" y="2.5" width="12" height="19" rx="3" />
           <path d="M10.5 5.5h3" />
         </svg>
         <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {value[0]}
-          {value.length > 1 && <span style={{ color: "#666666", fontWeight: "600" }}>{` +${value.length - 1} more`}</span>}
+          {value.length > 1 && <span style={{ color: "#666666", fontWeight: compact ? "400" : "600" }}>{` +${value.length - 1} more`}</span>}
         </span>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#222222" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ ...icon, right: "22px", transform: `translateY(-50%) rotate(${open ? 180 : 0}deg)`, transition: "transform 150ms ease-out" }}>
+        <svg width={compact ? 16 : 18} height={compact ? 16 : 18} viewBox="0 0 24 24" fill="none" stroke="#222222" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ ...icon, right: compact ? "14px" : "22px", transform: `translateY(-50%) rotate(${open ? 180 : 0}deg)`, transition: "transform 150ms ease-out" }}>
           <path d="M6 9l6 6 6-6" />
         </svg>
       </button>

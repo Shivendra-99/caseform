@@ -1,98 +1,119 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useStore } from "../store.jsx";
-import { MODELS } from "../catalog.js";
+import { BUSINESS } from "../business.js";
+import SocialLinks from "./SocialLinks.jsx";
 
-// Model links set the shopper's model (index into MODELS) and jump to Best Sellers.
-const MODEL_COLUMNS = [
-  ["iPhone 16 Series", [["iPhone 16 Pro Max", 0], ["iPhone 16 Pro", 1], ["iPhone 16 Plus", 2], ["iPhone 16", 2]]],
-  ["iPhone 15 Series", [["iPhone 15 Pro Max", 3], ["iPhone 15 Pro", 3], ["iPhone 15 Plus", 3], ["iPhone 15", 3]]],
-  ["iPhone 14 & 13", [["iPhone 14 Pro Max", 4], ["iPhone 14 Pro", 4], ["iPhone 14 / 14 Plus", 4], ["iPhone 13 Series", 5]]],
+// Link columns. Every link goes somewhere real: a homepage section, the collection or a policy page.
+const SHOP = [
+  ["Shop all", "/collection"],
+  ["MagSafe covers", "/#lineup"],
+  ["Tempered glass", "/#glass"],
+  ["Camera lens glass", "/#glass"],
+  ["Case + glass combos", "/#bestsellers"],
 ];
-// [label, policy page] (null: no page yet)
-const GUARANTEES = [["Warranty & Replacement", "warranty"], ["Drop Protection Standards", null], ["Bubble-Free Install Promise", null], ["Returns & Exchanges", "returns"], ["Shipping Policy", "shipping"]];
-const PAYMENTS = ["UPI", "Visa", "Mastercard", "RuPay", "Net Banking", "Cash on Delivery"];
+const HELP = [
+  ["Shipping", "/policies/shipping"],
+  ["Returns & exchanges", "/policies/returns"],
+  ["Warranty & replacement", "/policies/warranty"],
+  ["Contact us", "/policies/contact"],
+];
+const YEAR = new Date().getFullYear();
+// Shown once business.js has a real address instead of its [placeholder].
+const EMAIL = BUSINESS.email.startsWith("[") ? null : BUSINESS.email;
 
-const colHeading = { margin: "0 0 6px", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", fontWeight: "600", letterSpacing: "0.12em", textTransform: "uppercase", color: "#222222" };
-const colNav = { gridColumn: "span 2", display: "flex", flexDirection: "column", gap: "12px", fontSize: "14px" };
-
+// Site footer: brand + socials, two link columns and the newsletter in one row, legal line centred below.
 export default function StoreFooter() {
-  const { setDevices } = useStore();
   const [subscribed, setSubscribed] = useState(false);
 
   return (
-    <footer className="se-root se-font" style={{ background: "#F5F5F5", color: "#222222" }}>
-      <div className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "80px 40px 32px", display: "flex", flexDirection: "column", gap: "56px" }}>
-        <div className="g12" style={{ display: "grid", gridTemplateColumns: "repeat(12, minmax(0, 1fr))", columnGap: "24px", rowGap: "40px" }}>
-          <div style={{ gridColumn: "span 4", display: "flex", flexDirection: "column", gap: "20px", minWidth: "0" }}>
-            <Link to="/" aria-label="SnapEdge home" style={{ display: "flex", alignItems: "center", gap: "12px", color: "#000000" }}>
-              <span style={{ width: "36px", height: "36px", background: "#000000", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "800", fontSize: "15px", letterSpacing: "-0.02em" }}>SE</span>
-              <span style={{ fontWeight: "800", fontSize: "17px", letterSpacing: "0.16em" }}>SNAP EDGE</span>
+    <footer className="se-root se-font" style={{ background: "#FFFFFF", color: "#111111", borderTop: "1px solid #EEEEEE" }}>
+      <div className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "56px 40px 28px", display: "flex", flexDirection: "column", gap: "40px" }}>
+        <div className="foot-grid">
+          <div className="foot-brand" style={{ display: "flex", flexDirection: "column", gap: "16px", minWidth: "0" }}>
+            <Link to="/" aria-label="SnapEdge home" style={{ display: "flex", alignItems: "center", gap: "10px", color: "#000000", alignSelf: "flex-start" }}>
+              <span style={{ width: "30px", height: "30px", background: "#000000", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "800", fontSize: "13px", letterSpacing: "-0.02em" }}>SE</span>
+              <span style={{ fontWeight: "800", fontSize: "15px", letterSpacing: "0.16em" }}>SNAP EDGE</span>
             </Link>
-            <p style={{ margin: "0", color: "#666666", maxWidth: "340px", fontSize: "15px" }}>Precision-fit iPhone covers and 9H tempered glass, designed to work as one.</p>
-            <form
-              style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "420px" }}
-              onSubmit={(e) => {
-                e.preventDefault();
-                setSubscribed(true);
-              }}
-            >
-              <label htmlFor="se-nl" style={{ fontSize: "14px", fontWeight: "700", color: "#222222" }}>
-                {"Get new-model drops & combo deals"}
-              </label>
-              {subscribed ? (
-                <p role="status" style={{ margin: "0", fontSize: "14px", color: "#222222" }}>
-                  You're on the list. We'll email you when new models and combos drop.
-                </p>
-              ) : (
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  <input id="se-nl" type="email" required autoComplete="email" placeholder="you@example.com" style={{ flex: "1 1 200px", minWidth: "0", height: "48px", padding: "0 20px", borderRadius: "50px", border: "1px solid #DDDDDD", background: "#FFFFFF", fontFamily: "inherit", fontSize: "14px", color: "#222222" }} />
-                  <button type="submit" className="btn-solid" style={{ height: "48px", padding: "0 24px", border: "0", borderRadius: "50px", background: "#000000", color: "#FFFFFF", fontFamily: "inherit", fontWeight: "700", fontSize: "14px", cursor: "pointer" }}>
-                    Subscribe
-                  </button>
-                </div>
-              )}
-            </form>
+            <p style={{ margin: "0", maxWidth: "300px", fontSize: "14px", lineHeight: "1.6", color: "#555555" }}>Precision-fit iPhone covers and 9H tempered glass, designed to work as one.</p>
+            <div style={{ marginLeft: "-11px" }}>
+              <SocialLinks />
+            </div>
           </div>
-          {MODEL_COLUMNS.map(([title, links]) => (
-            <nav key={title} className="fcol foot" aria-label={title} style={colNav}>
-              <h3 style={colHeading}>{title}</h3>
-              {links.map(([label, mi]) => (
-                <Link key={label} to="/#bestsellers" onClick={() => setDevices([MODELS[mi]])}>
-                  {label}
-                </Link>
+
+          <nav className="foot-col" aria-labelledby="foot-shop">
+            <h2 id="foot-shop">Shop</h2>
+            <ul>
+              {SHOP.map(([label, to]) => (
+                <li key={label}>
+                  <Link to={to}>{label}</Link>
+                </li>
               ))}
-            </nav>
-          ))}
-          <nav className="fcol foot" aria-label="Protection Guarantees" style={colNav}>
-            <h3 style={colHeading}>Protection Guarantees</h3>
-            {GUARANTEES.map(([label, slug]) =>
-              slug ? (
-                <Link key={label} to={`/policies/${slug}`}>
-                  {label}
-                </Link>
-              ) : (
-                <a key={label} href="#">
-                  {label}
-                </a>
-              ),
-            )}
+            </ul>
           </nav>
-        </div>
-        <div style={{ borderTop: "1px solid #E2E2E2", paddingTop: "24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap", fontSize: "13px", color: "#666666" }}>
-          <span>© 2026 SnapEdge. All rights reserved.</span>
-          <ul aria-label="Accepted payment methods" style={{ listStyle: "none", margin: "0", padding: "0", display: "flex", flexWrap: "wrap", gap: "8px" }}>
-            {PAYMENTS.map((p) => (
-              <li key={p} style={{ height: "30px", padding: "0 12px", background: "#FFFFFF", border: "1px solid #E2E2E2", display: "flex", alignItems: "center", fontSize: "12px", fontWeight: "700", color: "#222222" }}>
-                {p}
-              </li>
-            ))}
-          </ul>
-          <div className="foot" style={{ display: "flex", gap: "20px" }}>
-            <Link to="/policies/privacy">Privacy</Link>
-            <Link to="/policies/terms">Terms</Link>
-            <Link to="/policies/contact">Contact</Link>
+          <nav className="foot-col" aria-labelledby="foot-help">
+            <h2 id="foot-help">Customer service</h2>
+            <ul>
+              {HELP.map(([label, to]) => (
+                <li key={label}>
+                  <Link to={to}>{label}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className="foot-col foot-news" style={{ minWidth: "0" }}>
+            <h2 id="foot-news">Stay connected</h2>
+            <p style={{ margin: "0 0 14px", fontSize: "14px", lineHeight: "1.6", color: "#555555" }}>New-model drops and combo deals, straight to your inbox.</p>
+            {subscribed ? (
+              <p role="status" style={{ margin: "0", fontSize: "14px", color: "#1A7F4B" }}>
+                {"You're on the list. We'll email you when new models and combos land."}
+              </p>
+            ) : (
+              <form
+                aria-labelledby="foot-news"
+                style={{ display: "flex", gap: "8px", maxWidth: "340px" }}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setSubscribed(true);
+                }}
+              >
+                <label htmlFor="se-nl" className="sr-only">
+                  Email address
+                </label>
+                <input id="se-nl" type="email" required autoComplete="email" placeholder="Your email address" style={{ flex: "1 1 auto", minWidth: "0", height: "44px", padding: "0 14px", borderRadius: "10px", border: "1px solid #DDDDDD", background: "#FFFFFF", fontFamily: "inherit", fontSize: "16px", color: "#111111" }} />
+                <button type="submit" aria-label="Subscribe" className="btn-solid" style={{ width: "44px", height: "44px", flexShrink: "0", border: "0", borderRadius: "10px", background: "#111111", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M21 3 10 14" />
+                    <path d="M21 3 14.5 21l-4.5-7-7-4.5z" />
+                  </svg>
+                </button>
+              </form>
+            )}
+            {EMAIL && (
+              <a href={`mailto:${EMAIL}`} style={{ marginTop: "14px", display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 0", fontSize: "14px", color: "#555555" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="14" rx="2" />
+                  <path d="m3 7 9 6 9-6" />
+                </svg>
+                {EMAIL}
+              </a>
+            )}
           </div>
+        </div>
+
+        <div style={{ borderTop: "1px solid #EEEEEE", paddingTop: "24px", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", fontSize: "13px", color: "#666666", textAlign: "center" }}>
+          <span>{`© ${YEAR} SnapEdge. All rights reserved.`}</span>
+          <nav className="foot-legal" aria-label="Legal" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <Link to="/policies/privacy" style={{ color: "#666666", padding: "6px 0" }}>
+              Privacy Policy
+            </Link>
+            <span aria-hidden="true" style={{ color: "#CCCCCC" }}>
+              |
+            </span>
+            <Link to="/policies/terms" style={{ color: "#666666", padding: "6px 0" }}>
+              Terms of Service
+            </Link>
+          </nav>
         </div>
       </div>
     </footer>

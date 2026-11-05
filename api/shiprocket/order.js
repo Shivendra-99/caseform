@@ -1,6 +1,7 @@
 import { HttpError, readJson, send } from "../_lib/http.js";
 import { config, shiprocket, stamped } from "../_lib/shiprocket.js";
-import { parseVariantId } from "../_lib/feed.js";
+import { parseVariantId, loadCatalog } from "../_lib/feed.js";
+import { confirm } from "../_lib/stock.js";
 
 // POST /api/shiprocket/order — Shiprocket's order webhook (register this URL with them).
 // The webhook isn't signed, so its body is only a hint: the order is re-fetched from
@@ -20,7 +21,10 @@ export default async function handler(req, res) {
     const { result: order } = await shiprocket(cfg, "/api/v1/custom-platform-order/details", stamped({ order_id: orderId }));
     if (order?.status !== "SUCCESS") return send(res, 200, { ok: true, ignored: order?.status ?? "unknown" });
 
+    await loadCatalog();
     const items = order.cart_data.items.map((i) => ({ ...parseVariantId(i.variant_id), qty: i.quantity, variant_id: i.variant_id }));
+    // Keep the stock this order took (confirms its checkout hold; safe if Shiprocket retries).
+    await confirm(order.order_id, items.map((i) => ({ variant_id: Number(i.variant_id), qty: i.qty })));
     // TODO: persist the order (no database yet). Until then it's in the Vercel logs and the Shiprocket dashboard.
     console.log("order placed", JSON.stringify({
       orderId: order.order_id,

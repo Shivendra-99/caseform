@@ -5,6 +5,7 @@ import { PRODUCTS, BEST_SELLERS, modelsText } from "../catalog.js";
 import ModelPicker from "../components/ModelPicker.jsx";
 import HeroCarousel from "../components/HeroCarousel.jsx";
 import ProductCard from "../components/ProductCard.jsx";
+import Promises from "../components/Promises.jsx";
 
 const CATS = [
   { id: "all", label: "All" },
@@ -28,9 +29,8 @@ export default function Home() {
 
 
   const cats = CATS.map((c) => ({ label: c.label, ...pill(c.id === cat, { bg: "#FFFFFF", bd: "#DDDDDD" }), pick: () => setCat(c.id) }));
-  const showGlass = () => setCat("glass");
 
-  const ids = BEST_SELLERS.filter((id) => cat === "all" || PRODUCTS[id].cat === cat);
+  const ids = BEST_SELLERS.filter((id) => PRODUCTS[id] && (cat === "all" || PRODUCTS[id].cat === cat));
 
   return (
     <main className="se-root se-font" style={{ background: "#FFFFFF" }}>
@@ -130,7 +130,7 @@ export default function Home() {
                   4 lines · 15 cases
                 </span>
               </div>
-              <Link to="/collection" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: "700", color: "#222222" }}>
+              <Link to="/collection?cat=covers" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: "700", color: "#222222" }}>
                 Shop all covers
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M5 12h14M13 6l6 6-6 6" />
@@ -155,7 +155,7 @@ export default function Home() {
                   Every glass is a 2-pack · 50% off with any cover
                 </span>
               </div>
-              <Link to="/collection" onClick={showGlass} style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: "700", color: "#222222" }}>
+              <Link to="/collection?cat=glass" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: "700", color: "#222222" }}>
                 Shop all glass
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M5 12h14M13 6l6 6-6 6" />
@@ -169,51 +169,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* TRUST GUARANTEES (Inspired by The Case Factory) */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "16px", background: "#111111", color: "#FFFFFF", borderRadius: "24px", padding: "26px 32px", marginTop: "16px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
-                <rect x="1" y="3" width="15" height="13" />
-                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-                <circle cx="5.5" cy="18.5" r="2.5" />
-                <circle cx="18.5" cy="18.5" r="2.5" />
-              </svg>
-              <div>
-                <div style={{ fontSize: "14px", fontWeight: "700" }}>Free Express Delivery</div>
-                <div style={{ fontSize: "12px", color: "#999999" }}>On all orders ₹499+</div>
-              </div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <path d="M9 12l2 2 4-4" />
-              </svg>
-              <div>
-                <div style={{ fontSize: "14px", fontWeight: "700" }}>100% Fit Guarantee</div>
-                <div style={{ fontSize: "12px", color: "#999999" }}>Tailored for your iPhone</div>
-              </div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
-                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
-              </svg>
-              <div>
-                <div style={{ fontSize: "14px", fontWeight: "700" }}>7-Day Replacements</div>
-                <div style={{ fontSize: "12px", color: "#999999" }}>Zero hassle, zero friction</div>
-              </div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
-                <rect x="2" y="4" width="20" height="16" rx="2" />
-                <line x1="12" y1="8" x2="12" y2="16" />
-                <line x1="8" y1="12" x2="16" y2="12" />
-              </svg>
-              <div>
-                <div style={{ fontSize: "14px", fontWeight: "700" }}>Cash On Delivery</div>
-                <div style={{ fontSize: "12px", color: "#999999" }}>Available across India</div>
-              </div>
-            </div>
-          </div>
+          <Promises />
         </div>
       </section>
       </main>

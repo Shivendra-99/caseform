@@ -1,9 +1,7 @@
-import { Routes, Route, Outlet, useLocation } from "react-router-dom";
+import { Routes, Route, Outlet, useLocation, useNavigationType } from "react-router-dom";
 import { lazy, Suspense, useEffect, useRef } from "react";
 import StoreHeader from "./components/StoreHeader.jsx";
 import StoreFooter from "./components/StoreFooter.jsx";
-import AdminSidebar from "./components/AdminSidebar.jsx";
-import AdminHeader from "./components/AdminHeader.jsx";
 import PageMotion from "./motion/PageMotion.jsx";
 import { startSmoothScroll, scrollToTop, scrollToHash } from "./motion/smoothScroll.js";
 import Home from "./pages/Home.jsx";
@@ -16,8 +14,12 @@ const Account = lazy(() => import("./pages/Account.jsx"));
 const Policy = lazy(() => import("./pages/Policy.jsx"));
 const OrderConfirmed = lazy(() => import("./pages/OrderConfirmed.jsx"));
 const SignIn = lazy(() => import("./pages/SignIn.jsx"));
-const Admin = lazy(() => import("./pages/Admin.jsx"));
-const Inventory = lazy(() => import("./pages/Inventory.jsx"));
+const AdminLayout = lazy(() => import("./admin/AdminLayout.jsx"));
+const AdminOverview = lazy(() => import("./admin/Overview.jsx"));
+const AdminProducts = lazy(() => import("./admin/Products.jsx"));
+const AdminOrders = lazy(() => import("./admin/Orders.jsx"));
+const AdminProductForm = lazy(() => import("./admin/ProductForm.jsx"));
+const AdminModels = lazy(() => import("./admin/Models.jsx"));
 
 function StoreLayout() {
   const { pathname } = useLocation();
@@ -35,22 +37,9 @@ function StoreLayout() {
   );
 }
 
-function AdminLayout() {
-  return (
-    <>
-      <AdminSidebar />
-      <div className="pl-64">
-        <AdminHeader />
-        <Suspense fallback={null}>
-          <Outlet />
-        </Suspense>
-      </div>
-    </>
-  );
-}
-
 export default function App() {
   const { pathname, search, hash } = useLocation();
+  const navType = useNavigationType();
   const page = pathname + search; // /product?id=a -> ?id=b is a new page too
   const lastPage = useRef(page);
   useEffect(() => {
@@ -59,9 +48,10 @@ export default function App() {
     // New page: jump to its #section (e.g. /#lineup from the product page) or the top.
     // Same page: scroll to the #section here (forced), so it also works when the click came from
     // the menu drawer while smooth scroll was paused.
-    if (newPage) requestAnimationFrame(() => (hash ? scrollToHash(hash) : scrollToTop()));
+    // A REPLACE (e.g. Collection filters updating ?cat=) stays where the shopper is.
+    if (newPage && navType !== "REPLACE") requestAnimationFrame(() => (hash ? scrollToHash(hash) : scrollToTop()));
     else if (hash) scrollToHash(hash, false);
-  }, [page, hash]);
+  }, [page, hash, navType]);
 
   return (
     <Routes>
@@ -83,9 +73,20 @@ export default function App() {
           </Suspense>
         }
       />
-      <Route path="admin" element={<AdminLayout />}>
-        <Route index element={<Admin />} />
-        <Route path="inventory" element={<Inventory />} />
+      <Route
+        path="admin"
+        element={
+          <Suspense fallback={null}>
+            <AdminLayout />
+          </Suspense>
+        }
+      >
+        <Route index element={<AdminOverview />} />
+        <Route path="products" element={<AdminProducts />} />
+        <Route path="products/new" element={<AdminProductForm />} />
+        <Route path="products/:id" element={<AdminProductForm />} />
+        <Route path="models" element={<AdminModels />} />
+        <Route path="orders" element={<AdminOrders />} />
       </Route>
     </Routes>
   );

@@ -209,7 +209,7 @@ export default function Account() {
                       Order #SE-98241
                     </h2>
                     <p className="font-body-sm text-body-sm text-on-surface-variant">
-                      Placed March 28, 2025 • Express Air Courier
+                      Placed March 28, 2025 • Courier delivery
                     </p>
                   </div>
                   <div className="flex items-center gap-space-xs mt-2 md:mt-0">
@@ -259,7 +259,7 @@ export default function Account() {
                         Shipped (Air)
                       </span>
                       <span className="font-label-sm text-[10px] text-on-surface-variant">
-                        BlueDart Express
+                        Shiprocket courier
                       </span>
                     </div>
                     <div className="flex flex-col items-center text-center relative z-10">
@@ -283,7 +283,7 @@ export default function Account() {
                       </div>
                       <div>
                         <div className="font-label-sm text-label-sm font-semibold text-primary">
-                          Delivery Partner: Suresh M. (BlueDart Air)
+                          Out for delivery with our courier partner
                         </div>
                         <div className="font-body-sm text-body-sm text-on-surface-variant">
                           {"Assigned route: Whitefield Sector 4 & Prestige Ozone"}

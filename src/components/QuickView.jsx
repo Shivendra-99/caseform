@@ -1,10 +1,10 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useStore } from "../store.jsx";
-import { PRODUCTS, COLORS, FINISHES, inr, modelsText } from "../catalog.js";
+import { useStore, stockFor } from "../store.jsx";
+import { PRODUCTS, inr, modelsText, optionsFor } from "../catalog.js";
 import { lockScroll } from "../motion/smoothScroll.js";
 import { closeWithExit, useDragDismiss } from "../motion/sheet.js";
-import ProductArt from "./ProductArt.jsx";
+import ProductGallery, { photosOf } from "./ProductGallery.jsx";
 import { BADGES, Offer } from "./ProductCard.jsx";
 
 const round = { width: "44px", height: "44px", border: "1px solid rgba(0,0,0,0.1)", borderRadius: "50px", background: "#FFFFFF", color: "#111111", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" };
@@ -15,18 +15,22 @@ const round = { width: "44px", height: "44px", border: "1px solid rgba(0,0,0,0.1
 // shrinks back into it; on phones it's a bottom sheet you can drag down to dismiss.
 export default function QuickView({ id, finish: startFinish, origin, onClose }) {
   const p = PRODUCTS[id];
-  const { devices, addForModels } = useStore();
+  const { cart, devices, addForModels } = useStore();
   const ref = useRef(null);
   const grab = useRef(null);
   const titleId = useId();
-  const imgs = p.imgs ?? (p.img ? [p.img] : []);
+  const imgs = photosOf(p);
   const isGlass = p.kind === "glass";
   const url = p.kind === "case" ? `/product?id=${id}` : null;
   const badge = BADGES[p.badge];
   const n = devices.length;
   const [i, setI] = useState(0);
-  const [finish, setFinish] = useState(startFinish);
+  const opts = optionsFor(p); // glass finishes or cover colours
+  const [finish, setFinish] = useState(isGlass ? startFinish : 0);
   const [added, setAdded] = useState(false);
+  const variant = opts?.[finish].name;
+  const soldOutFor = devices.filter((d) => stockFor(id, d, variant, cart) < 1);
+  const inStock = n - soldOutFor.length;
 
   useEffect(() => {
     const d = ref.current;
@@ -47,7 +51,7 @@ export default function QuickView({ id, finish: startFinish, origin, onClose }) 
   const close = () => closeWithExit(ref.current); // fires onClose once the exit animation ends
   const step = (d) => setI((x) => (x + d + imgs.length) % imgs.length);
   const add = () => {
-    addForModels(id, 1, isGlass ? FINISHES[finish].name : undefined);
+    addForModels(id, 1, variant);
     navigator.vibrate?.(10); // a light tick on the commit, same frame as the visual change
     setAdded(true);
     setTimeout(() => setAdded(false), 1600);
@@ -74,43 +78,7 @@ export default function QuickView({ id, finish: startFinish, origin, onClose }) 
       </button>
 
       <div className="qv-grid">
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px", minWidth: "0" }}>
-          <div style={{ position: "relative", aspectRatio: "4 / 5", background: "#F6F6F6", borderRadius: "20px", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            {imgs.length ? (
-              imgs.map((src, k) => (
-                <img key={src} src={src} alt={k === i ? `${p.name}, photo ${k + 1} of ${imgs.length}` : ""} aria-hidden={k !== i} style={{ position: "absolute", inset: "0", margin: "auto", width: "86%", height: "86%", objectFit: "contain", mixBlendMode: "multiply", opacity: k === i ? 1 : 0, transition: "opacity 250ms ease" }} />
-              ))
-            ) : (
-              <ProductArt kind={p.kind} color={COLORS[p.def]} finish={FINISHES[finish]} style={{ width: "78%", height: "78%" }} />
-            )}
-            {imgs.length > 1 && (
-              <>
-                <button type="button" aria-label="Previous photo" onClick={() => step(-1)} style={{ ...round, position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M15 6l-6 6 6 6" />
-                  </svg>
-                </button>
-                <button type="button" aria-label="Next photo" onClick={() => step(1)} style={{ ...round, position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)" }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M9 6l6 6-6 6" />
-                  </svg>
-                </button>
-                <span aria-live="polite" style={{ position: "absolute", bottom: "14px", left: "50%", transform: "translateX(-50%)", padding: "4px 10px", borderRadius: "40px", background: "rgba(255,255,255,0.9)", fontSize: "12px", fontWeight: "600", color: "#111111" }}>
-                  {`${i + 1} / ${imgs.length}`}
-                </span>
-              </>
-            )}
-          </div>
-          {imgs.length > 1 && (
-            <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "2px" }}>
-              {imgs.map((src, k) => (
-                <button key={src} type="button" aria-label={`Show photo ${k + 1}`} aria-current={k === i ? "true" : undefined} onClick={() => setI(k)} style={{ width: "64px", height: "76px", flexShrink: "0", padding: "0", border: `2px solid ${k === i ? "#111111" : "transparent"}`, borderRadius: "12px", background: "#F6F6F6", overflow: "hidden", cursor: "pointer" }}>
-                  <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", mixBlendMode: "multiply" }} />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <ProductGallery p={p} finish={isGlass ? finish : startFinish} i={i} setI={setI} />
 
         <div style={{ display: "flex", flexDirection: "column", gap: "16px", minWidth: "0", paddingTop: "8px" }}>
           {badge && <span className="pbadge" style={{ alignSelf: "flex-start", background: badge.bg }}>{badge.label}</span>}
@@ -125,10 +93,11 @@ export default function QuickView({ id, finish: startFinish, origin, onClose }) 
           <Offer p={p} style={{ fontSize: "15px" }} />
           <p style={{ margin: "0", fontSize: "15px", lineHeight: "1.6", color: "#444444" }}>{p.feat}.</p>
 
-          {isGlass && (
-            <div role="group" aria-label="Finish" style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-              {FINISHES.map((f, k) => (
-                <button key={f.name} type="button" aria-pressed={k === finish} onClick={() => setFinish(k)} style={{ height: "40px", padding: "0 16px", borderRadius: "40px", border: `1px solid ${k === finish ? "#111111" : "#DDDDDD"}`, background: k === finish ? "#111111" : "#FFFFFF", color: k === finish ? "#FFFFFF" : "#222222", fontFamily: "inherit", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>
+          {opts && (
+            <div role="group" aria-label={isGlass ? "Finish" : "Colour"} style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              {opts.map((f, k) => (
+                <button key={f.name} type="button" aria-pressed={k === finish} onClick={() => setFinish(k)} style={{ height: "40px", padding: f.swatch ? "0 16px 0 10px" : "0 16px", display: "inline-flex", alignItems: "center", gap: "8px", borderRadius: "40px", border: `1px solid ${k === finish ? "#111111" : "#DDDDDD"}`, background: k === finish ? "#111111" : "#FFFFFF", color: k === finish ? "#FFFFFF" : "#222222", fontFamily: "inherit", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>
+                  {f.swatch && <span aria-hidden="true" style={{ width: "18px", height: "18px", borderRadius: "50%", background: f.swatch, boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.6)" }} />}
                   {f.name}
                 </button>
               ))}
@@ -139,10 +108,11 @@ export default function QuickView({ id, finish: startFinish, origin, onClose }) 
             {"For "}
             <strong style={{ color: "#111111", fontWeight: "600" }}>{modelsText(devices)}</strong>
             {n > 1 ? ". You'll get one for each model." : "."}
+            {soldOutFor.length > 0 && <span style={{ display: "block", marginTop: "4px", color: "#C4281C", fontWeight: "500" }}>{`Not available for ${modelsText(soldOutFor)}.`}</span>}
           </div>
 
-          <button type="button" className="btn-solid" onClick={add} style={{ height: "56px", border: "0", borderRadius: "50px", background: "#111111", color: "#FFFFFF", fontFamily: "inherit", fontSize: "16px", fontWeight: "600", cursor: "pointer" }}>
-            {added ? "Added to bag ✓" : `Add to bag · ${inr(p.price * n)}`}
+          <button type="button" className="btn-solid" onClick={add} disabled={!inStock} style={{ height: "56px", border: "0", borderRadius: "50px", background: inStock ? "#111111" : "#BBBBBB", color: "#FFFFFF", fontFamily: "inherit", fontSize: "16px", fontWeight: "600", cursor: inStock ? "pointer" : "default" }}>
+            {added ? "Added to bag ✓" : inStock ? `Add to bag · ${inr(p.price * inStock)}` : "Sold out"}
           </button>
           <span role="status" className="sr-only">
             {added ? `Added ${p.name} to bag` : ""}

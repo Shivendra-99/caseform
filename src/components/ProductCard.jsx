@@ -1,20 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useStore } from "../store.jsx";
-import { PRODUCTS, COLORS, FINISHES, inr, modelsText } from "../catalog.js";
+import { useStore, stockFor } from "../store.jsx";
+import { PRODUCTS, COLORS, FINISHES, inr, modelsText, optionsFor } from "../catalog.js";
 import { reducedMotion } from "../motion/gsap.js";
 import ProductArt from "./ProductArt.jsx";
 import QuickView from "./QuickView.jsx";
 
 const CYCLE_MS = 1100;
-const GLASS_WITH_COVER = Math.floor(PRODUCTS.autoalign.price / 2);
 
 export const BADGES = { best: { label: "Best seller", bg: "#111111" }, new: { label: "New", bg: "#1F7A4D" }, sale: { label: "Sale", bg: "#C4281C" } };
 
 // The offer line under the price: plain text plus the saving in green.
 export function Offer({ p, style }) {
   const [text, deal] =
-    p.kind === "case" ? [`Add 9H glass for ${inr(GLASS_WITH_COVER)}`, "(50% off)"]
+    p.kind === "case" ? [`Add 9H glass for ${inr(Math.floor(PRODUCTS.autoalign.price / 2))}`, "(50% off)"]
     : p.kind === "glass" ? [`${inr(Math.floor(p.price / 2))} with any cover`, "(50% off)"]
     : p.kind === "combo" ? ["Case + 9H glass", `(save ${inr(p.mrp - p.price)})`]
     : [null];
@@ -31,9 +30,15 @@ export function Offer({ p, style }) {
 // Clicking the photo opens Quick view. Adding puts one in the bag per selected iPhone model.
 export default function ProductCard({ id }) {
   const p = PRODUCTS[id];
-  const { devices, addForModels } = useStore();
+  const { cart, devices, addForModels } = useStore();
   const imgs = p.imgs ?? (p.img ? [p.img] : []);
   const isGlass = p.kind === "glass";
+  const opts = optionsFor(p);
+  const colors = isGlass ? null : opts; // covers: the card adds the first colour, Quick view / the product page pick others
+  const variant = opts?.[isGlass ? p.def : 0].name;
+  // Selected iPhone models this product has run out for (only stock-tracked products ever do).
+  const soldOutFor = devices.filter((d) => stockFor(id, d, variant, cart) < 1);
+  const soldOut = soldOutFor.length === devices.length;
   const url = p.kind === "case" ? `/product?id=${id}` : null;
   const badge = BADGES[p.badge];
   const [shown, setShown] = useState(0);
@@ -60,12 +65,13 @@ export default function ProductCard({ id }) {
     setShown(0);
   };
   const add = () => {
-    addForModels(id, 1, isGlass ? FINISHES[finish].name : undefined);
+    addForModels(id, 1, variant);
     navigator.vibrate?.(10); // a light tick on the commit, same frame as the visual change
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
-  const forModels = devices.length > 1 ? `, one for each of ${modelsText(devices)}` : "";
+  const canAdd = devices.filter((d) => !soldOutFor.includes(d));
+  const forModels = canAdd.length > 1 ? `, one for each of ${modelsText(canAdd)}` : canAdd.length === 1 && devices.length > 1 ? `, for ${canAdd[0]}` : "";
 
   return (
     <article className="pcard se-font" style={{ display: "flex", flexDirection: "column", gap: "8px", padding: "8px", background: "#F6F6F6", borderRadius: "22px", minWidth: "0" }}>
@@ -125,7 +131,7 @@ export default function ProductCard({ id }) {
               p.name
             )}
           </h3>
-          <button type="button" className="pcard-add" data-added={added || undefined} aria-label={`Add ${p.name}${isGlass ? `, ${FINISHES[finish].name}` : ""} to bag${forModels}`} onClick={add} style={{ width: "44px", height: "44px", flexShrink: "0", border: "0", borderRadius: "50px", background: added ? "#111111" : "transparent", color: added ? "#FFFFFF" : "#111111", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "background-color 150ms ease, color 150ms ease, scale 200ms cubic-bezier(0.2, 0.8, 0.2, 1)" }}>
+          <button type="button" className="pcard-add" data-added={added || undefined} disabled={soldOut} aria-label={soldOut ? `${p.name} isn't available for ${modelsText(devices)}` : `Add ${p.name}${variant ? `, ${variant}` : ""} to bag${forModels}`} onClick={add} style={{ width: "44px", height: "44px", flexShrink: "0", border: "0", borderRadius: "50px", background: added ? "#111111" : "transparent", color: added ? "#FFFFFF" : soldOut ? "#BBBBBB" : "#111111", display: "flex", alignItems: "center", justifyContent: "center", cursor: soldOut ? "default" : "pointer", transition: "background-color 150ms ease, color 150ms ease, scale 200ms cubic-bezier(0.2, 0.8, 0.2, 1)" }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               {added ? (
                 <path d="M5 12.5l4.5 4.5L19 7.5" />
@@ -142,9 +148,17 @@ export default function ProductCard({ id }) {
           <span style={{ fontSize: "17px", fontWeight: "500", color: "#111111" }}>{inr(p.price)}</span>
           {p.mrp > p.price && <s style={{ fontSize: "14px", color: "#8A8A8A" }}>{inr(p.mrp)}</s>}
         </div>
-        <Offer p={p} />
+        {colors && colors.length > 1 && (
+          <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+            {colors.map((c) => (
+              <span key={c.name} title={c.name} aria-hidden="true" style={{ width: "12px", height: "12px", borderRadius: "50%", background: c.swatch, boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.18)" }} />
+            ))}
+            <span style={{ marginLeft: "3px", fontSize: "12px", color: "#666666" }}>{`${colors.length} colours`}</span>
+          </div>
+        )}
+        {soldOutFor.length ? <span style={{ fontSize: "13px", fontWeight: "500", color: "#C4281C" }}>{`Not available for ${modelsText(soldOutFor)}`}</span> : <Offer p={p} />}
         <span role="status" className="sr-only">
-          {added ? `Added ${p.name} to bag` : ""}
+          {added ? `Added ${p.name} to bag${soldOutFor.length ? `, except ${modelsText(soldOutFor)}, which isn't available` : ""}` : ""}
         </span>
       </div>
 

@@ -4,7 +4,7 @@ import { useStore } from "../store.jsx";
 import { lockScroll } from "../motion/smoothScroll.js";
 import { closeWithExit, cancelExit, useDragDismiss } from "../motion/sheet.js";
 import ModelPicker from "./ModelPicker.jsx";
-import { SOCIAL } from "../business.js";
+import SocialLinks from "./SocialLinks.jsx";
 
 // Primary nav; links point at homepage sections. `active` marks the link for the current page.
 const NAV = [
@@ -25,30 +25,6 @@ const MENU = [
   { label: "Case + Glass Combos", to: "/#bestsellers" },
 ];
 const roundBtn = { width: "56px", height: "56px", border: "1px solid #E6E6E6", borderRadius: "50px", background: "#FFFFFF", color: "#111111", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: "0" };
-
-// Brand glyphs for the SOCIAL links in business.js (drawn in the 24px icon grid used site-wide).
-const SOCIAL_ICONS = {
-  Instagram: (
-    <>
-      <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
-      <circle cx="12" cy="12" r="4" />
-      <circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none" />
-    </>
-  ),
-  Facebook: <path fill="currentColor" stroke="none" d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H8v3h2.5V21z" />,
-  YouTube: (
-    <>
-      <rect x="2.5" y="5.5" width="19" height="13" rx="4" fill="currentColor" stroke="none" />
-      <path d="M10.2 9.2v5.6l4.8-2.8z" fill="#F6F6F6" stroke="none" />
-    </>
-  ),
-  WhatsApp: (
-    <>
-      <path d="M12 3.5a8.5 8.5 0 0 0-7.4 12.7L3.5 20.5l4.4-1.1A8.5 8.5 0 1 0 12 3.5z" />
-      <path d="M9.2 8.6c.2-.4.6-.4.9-.4l.6 1.4c.1.2 0 .5-.1.6l-.5.6c.6 1.2 1.6 2.2 2.9 2.8l.6-.6c.2-.2.4-.2.6-.1l1.4.7c0 .4-.1.8-.4 1.1-.5.5-1.4.7-2.4.3-1.8-.7-3.4-2.3-4.1-4.1-.3-.9-.1-1.8.5-2.3z" fill="currentColor" stroke="none" />
-    </>
-  ),
-};
 
 const iconBtn = { width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50px", color: "#222222" };
 const underline = { textDecoration: "underline", textUnderlineOffset: "7px", textDecorationThickness: "1.5px" };
@@ -242,15 +218,7 @@ export default function StoreHeader() {
               </svg>
               My account
             </Link>
-            <div style={{ display: "flex", gap: "2px" }}>
-              {SOCIAL.map((so) => (
-                <a key={so.name} href={so.url} target="_blank" rel="noopener noreferrer" aria-label={`SnapEdge on ${so.name} (opens in a new tab)`} className="menu-social" style={iconBtn}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    {SOCIAL_ICONS[so.name]}
-                  </svg>
-                </a>
-              ))}
-            </div>
+            <SocialLinks />
           </div>
         </div>
       </dialog>

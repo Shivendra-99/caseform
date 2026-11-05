@@ -29,16 +29,15 @@
   .se-root .btn-ghost-dark:hover { background: #FFFFFF !important; color: #000000 !important; }
   .se-root .btn-ghost:hover { background: #222222 !important; color: #FFFFFF !important; }
   .se-root .model-select:hover { background: #F4F4F4 !important; }
+  .se-root .model-select.is-compact:hover { background: #FFFFFF !important; border-color: #111111 !important; }
   .se-root .card:hover .card-img { background: #ECECEC !important; }
   .se-root .line:hover { border-color: #222222 !important; }
   .se-root .help:hover { background: #ECECEC !important; }
-  .se-root .foot a:hover { color: #000000; }
   .se-root .icon-btn:hover { background: rgba(0, 0, 0, 0.05); }
 }
 .se-root .model-select:focus-visible { outline: 2px solid #000000; outline-offset: 3px; }
 .se-root .model-search:focus { outline: 2px solid #000000; outline-offset: 1px; }
 .se-root .hero-media { --fan-w: 190px; --fan-step: 1.9px; }
-.se-root .foot a { color: #555555; }
 
 /* Press feedback (Apple: respond on pointer-down, not on release). Buttons give a little the instant
    they're pressed and ease back on release. Uses the `scale` property, so it composes with any inline
@@ -67,7 +66,6 @@
 }
 @media (max-width: 960px) {
   .se-root .g12 > * { grid-column: span 12 !important; }
-  .se-root .g12 > .fcol { grid-column: span 6 !important; }
   .se-root .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .se-root .g2, .se-root .g3 { grid-template-columns: minmax(0, 1fr) !important; }
   .se-root .hx { font-size: 42px !important; }
@@ -164,7 +162,7 @@
 @media (hover: hover) {
   .menu-drawer .menu-row:hover { opacity: 0.6; }
   .menu-drawer .menu-back:hover { opacity: 0.6; }
-  .menu-drawer .menu-social:hover { background: #E9E9E9; }
+  .se-root .social-link:hover { background: rgba(0, 0, 0, 0.07); }
 }
 .menu-drawer[open] { animation: drawer-in 380ms cubic-bezier(0.16, 1, 0.3, 1); }
 .menu-drawer[open]::backdrop { animation: fade-in 380ms ease; }
@@ -188,3 +186,87 @@
 }
 @media (max-width: 560px) { .pcard-img { aspect-ratio: 1 / 1 !important; } }
 .qv :focus-visible, .menu-drawer :focus-visible { outline: 2px solid #111111; outline-offset: 2px; }
+
+/* Shop promises (Home): a grey shell with white tiles, the same language as the product cards. */
+.se-root .promises { list-style: none; margin: 16px 0 0; padding: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px; background: #F6F6F6; border-radius: 22px; }
+.se-root .promise { display: flex; align-items: center; gap: 14px; height: 100%; padding: 18px 20px; background: #FFFFFF; border-radius: 16px; color: #111111; transition: box-shadow 200ms ease; }
+.se-root .promise:hover { box-shadow: inset 0 0 0 1.5px #111111; }
+.se-root .promise:focus-visible { outline: 2px solid #111111; outline-offset: 2px; }
+.se-root .promise-icon { width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; background: #F6F6F6; color: #111111; display: flex; align-items: center; justify-content: center; }
+
+/* Site footer (StoreFooter.jsx): brand, two link columns and the newsletter in one row. */
+.se-root .foot-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.3fr); gap: 40px; align-items: start; }
+.se-root .foot-col h2 { margin: 0 0 14px; font-size: 14px; font-weight: 600; color: #111111; }
+.se-root .foot-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.se-root .foot-col a { display: inline-block; padding: 5px 0; font-size: 14px; color: #555555; }
+.se-root .foot-col a:focus-visible, .se-root .foot-legal a:focus-visible { outline: 2px solid #111111; outline-offset: 2px; }
+@media (hover: hover) {
+  .se-root .foot-col a:hover, .se-root .foot-legal a:hover { color: #111111 !important; text-decoration: underline; text-underline-offset: 3px; }
+}
+@media (max-width: 960px) {
+  .se-root .foot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 16px; }
+  .se-root .foot-brand, .se-root .foot-news { grid-column: 1 / -1; }
+}
+
+/* Collection toolbar (Collection.jsx): pills wrap on desktop; on phones each row scrolls sideways
+   and the bar stops being sticky so it doesn't eat the screen. */
+.se-root .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 760px) {
+  .se-root .col-bar { position: static !important; }
+  .se-root .chip-row { flex-wrap: nowrap; overflow-x: auto; width: 100%; padding-bottom: 2px; scrollbar-width: none; }
+  .se-root .chip-row::-webkit-scrollbar { display: none; }
+  .se-root .col-bar-rule { display: none; }
+  .se-root .col-tools { margin-left: 0 !important; }
+  .se-root .price-panel { left: 0; right: auto !important; }
+}
+
+/* Price filter (PriceFilter.jsx): two native range inputs share one track; only their thumbs take
+   the pointer, so each handle drags (and arrow-keys) on its own. */
+.se-root .price-panel { right: 0; }
+.se-root .range2 { position: relative; height: 28px; }
+.se-root .range2 input[type="range"] { position: absolute; inset: 0; width: 100%; height: 28px; margin: 0; background: none; pointer-events: none; -webkit-appearance: none; appearance: none; }
+.se-root .range2 input[type="range"]::-webkit-slider-runnable-track { background: none; }
+.se-root .range2 input[type="range"]::-moz-range-track { background: none; }
+.se-root .range2 input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF; border: 2px solid #111111; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15); cursor: grab; }
+.se-root .range2 input[type="range"]::-moz-range-thumb { pointer-events: auto; width: 20px; height: 20px; border-radius: 50%; background: #FFFFFF; border: 2px solid #111111; cursor: grab; }
+.se-root .range2 input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid #111111; outline-offset: 2px; }
+.se-root .range2 input[type="range"]:focus-visible::-moz-range-thumb { outline: 2px solid #111111; outline-offset: 2px; }
+
+/* Product page (Product.jsx) */
+.se-root .pp-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 56px; align-items: start; }
+.se-root .pp-step { width: 40px; height: 40px; border: 0; border-radius: 50px; background: transparent; color: #111111; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.se-root .pp-step:disabled { color: #BBBBBB; cursor: default; }
+.se-root .pp-acc { border-top: 1px solid #EEEEEE; }
+.se-root .pp-acc details { border-bottom: 1px solid #EEEEEE; }
+.se-root .pp-acc summary { list-style: none; display: flex; align-items: center; justify-content: space-between; min-height: 56px; font-size: 16px; font-weight: 600; color: #111111; cursor: pointer; }
+.se-root .pp-acc summary::-webkit-details-marker { display: none; }
+.se-root .pp-acc summary::after { content: ""; width: 9px; height: 9px; margin-right: 6px; border-right: 2px solid #111111; border-bottom: 2px solid #111111; transform: rotate(45deg); transition: transform 200ms ease; }
+.se-root .pp-acc details[open] summary::after { transform: rotate(-135deg); }
+.se-root .pp-acc summary:focus-visible { outline: 2px solid #111111; outline-offset: 2px; }
+.se-root .pp-acc details > div, .se-root .pp-acc details > dl { margin: 0; padding: 0 0 20px; font-size: 15px; line-height: 1.6; color: #444444; }
+.se-root .pp-specs > div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; padding: 8px 0; }
+.se-root .pp-specs dt { color: #666666; }
+.se-root .pp-specs dd { margin: 0; color: #111111; }
+.se-root .pp-set { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.2fr); gap: 8px; padding: 8px; border-radius: 22px; background: #F6F6F6; }
+@media (max-width: 960px) {
+  .se-root .pp-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .se-root .pp-set { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .se-root .pp-set > :last-child { grid-column: 1 / -1; }
+}
+@media (max-width: 560px) {
+  .se-root .pp-set { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Sign in (SignIn.jsx): mobile field, six code boxes, quiet links. */
+.si-page { min-height: 100vh; background: #FFFFFF; color: #111111; }
+.si-step { animation: si-in 320ms cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes si-in { from { opacity: 0; transform: translateY(8px); } }
+.si-field { display: flex; align-items: center; height: 52px; border: 1px solid #DDDDDD; border-radius: 12px; background: #FFFFFF; transition: border-color 150ms ease, box-shadow 150ms ease; }
+.si-field:focus-within, .si-code:focus ~ .si-cells .is-next { border-color: #111111; box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08); }
+.si-field[data-invalid], .si-cell.is-invalid { border-color: #C4281C; }
+.si-cell { height: 56px; display: flex; align-items: center; justify-content: center; border: 1px solid #DDDDDD; border-radius: 12px; font-size: 22px; font-weight: 600; color: #111111; transition: border-color 150ms ease, box-shadow 150ms ease; }
+.si-link { border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: #111111; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.si-link:disabled { color: #AAAAAA; cursor: default; }
+.si-page :is(a, .si-link):focus-visible { outline: 2px solid #111111; outline-offset: 2px; border-radius: 4px; }
+@media (hover: hover) { .si-quiet:hover { color: #111111 !important; } }
+@media (prefers-reduced-motion: reduce) { .si-step { animation: none; } }

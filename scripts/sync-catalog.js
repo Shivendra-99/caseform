@@ -2,7 +2,7 @@
 // Run after changing prices or products and deploying:
 //   SITE_URL=https://your-domain node --env-file=.env.local scripts/sync-catalog.js
 import { config, shiprocket } from "../api/_lib/shiprocket.js";
-import { COLLECTIONS, sellable, toShiprocketProduct, toShiprocketCollection } from "../api/_lib/feed.js";
+import { COLLECTIONS, sellable, toShiprocketProduct, toShiprocketCollection, loadCatalog } from "../api/_lib/feed.js";
 
 const cfg = config();
 const origin = process.env.SITE_URL?.replace(/\/$/, "");
@@ -11,6 +11,7 @@ if (!cfg || !origin) {
   process.exit(1);
 }
 
+await loadCatalog();
 for (const c of COLLECTIONS) {
   await shiprocket(cfg, "/wh/v1/custom/collection", toShiprocketCollection(c, origin));
   console.log("collection", c.handle);
