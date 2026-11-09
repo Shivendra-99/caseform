@@ -6,7 +6,7 @@ import ModelPicker from "./ModelPicker.jsx";
 import { lockScroll } from "../motion/smoothScroll.js";
 import { closeWithExit, useDragDismiss } from "../motion/sheet.js";
 import ProductGallery, { photosOf } from "./ProductGallery.jsx";
-import { BADGES, Offer } from "./ProductCard.jsx";
+import { BADGES } from "./ProductCard.jsx";
 
 const round = { width: "44px", height: "44px", border: "1px solid rgba(0,0,0,0.1)", borderRadius: "50px", background: "#FFFFFF", color: "#111111", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" };
 
@@ -91,7 +91,6 @@ export default function QuickView({ id, finish: startFinish, origin, onClose }) 
             {p.mrp > p.price && <s style={{ fontSize: "16px", color: "#8A8A8A" }}>{inr(p.mrp)}</s>}
             <span style={{ fontSize: "13px", color: "#666666" }}>Inclusive of all taxes</span>
           </div>
-          <Offer p={p} style={{ fontSize: "15px" }} />
           <p style={{ margin: "0", fontSize: "15px", lineHeight: "1.6", color: "#444444" }}>{p.feat}.</p>
 
           {opts && (

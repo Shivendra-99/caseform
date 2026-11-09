@@ -2,14 +2,13 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { BUSINESS } from "../business.js";
 import SocialLinks from "./SocialLinks.jsx";
+import Logo from "./Logo.jsx";
 
 // Link columns. Every link goes somewhere real: a homepage section, the collection or a policy page.
 const SHOP = [
   ["Shop all", "/collection"],
-  ["MagSafe covers", "/#lineup"],
-  ["Tempered glass", "/#glass"],
-  ["Camera lens glass", "/#glass"],
-  ["Case + glass combos", "/#bestsellers"],
+  ["Best sellers", "/#bestsellers"],
+  ["MagSafe covers", "/collection?f=magsafe"],
 ];
 const HELP = [
   ["Shipping", "/policies/shipping"],
@@ -31,10 +30,9 @@ export default function StoreFooter() {
         <div className="foot-grid">
           <div className="foot-brand" style={{ display: "flex", flexDirection: "column", gap: "16px", minWidth: "0" }}>
             <Link to="/" aria-label="SnapEdge home" style={{ display: "flex", alignItems: "center", gap: "10px", color: "#000000", alignSelf: "flex-start" }}>
-              <span style={{ width: "30px", height: "30px", background: "#000000", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "800", fontSize: "13px", letterSpacing: "-0.02em" }}>SE</span>
-              <span style={{ fontWeight: "800", fontSize: "15px", letterSpacing: "0.16em" }}>SNAP EDGE</span>
+              <Logo height={36} />
             </Link>
-            <p style={{ margin: "0", maxWidth: "300px", fontSize: "14px", lineHeight: "1.6", color: "#555555" }}>Precision-fit iPhone covers and 9H tempered glass, designed to work as one.</p>
+            <p style={{ margin: "0", maxWidth: "300px", fontSize: "14px", lineHeight: "1.6", color: "#555555" }}>Precision-fit covers for iPhone 17 Pro and iPhone 18 Pro.</p>
             <div style={{ marginLeft: "-11px" }}>
               <SocialLinks />
             </div>
@@ -63,10 +61,10 @@ export default function StoreFooter() {
 
           <div className="foot-col foot-news" style={{ minWidth: "0" }}>
             <h2 id="foot-news">Stay connected</h2>
-            <p style={{ margin: "0 0 14px", fontSize: "14px", lineHeight: "1.6", color: "#555555" }}>New-model drops and combo deals, straight to your inbox.</p>
+            <p style={{ margin: "0 0 14px", fontSize: "14px", lineHeight: "1.6", color: "#555555" }}>New covers and deals, straight to your inbox.</p>
             {subscribed ? (
               <p role="status" style={{ margin: "0", fontSize: "14px", color: "#1A7F4B" }}>
-                {"You're on the list. We'll email you when new models and combos land."}
+                {"You're on the list. We'll email you when new covers land."}
               </p>
             ) : (
               <form

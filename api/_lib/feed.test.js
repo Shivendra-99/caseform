@@ -18,7 +18,7 @@ test("every variant id is unique and maps back to product, model and option", ()
     }
   }
   assert.equal(parseVariantId(999999), null);
-  assert.equal(parseVariantId(109001), null); // lens glass has no colour/finish options
+  assert.equal(parseVariantId(102001), null); // product 102 is no longer sold
 });
 
 test("feed has no missing values (Shiprocket requires every field)", () => {

@@ -10,21 +10,6 @@ const CYCLE_MS = 1100;
 
 export const BADGES = { best: { label: "Best seller", bg: "#111111" }, new: { label: "New", bg: "#1F7A4D" }, sale: { label: "Sale", bg: "#C4281C" } };
 
-// The offer line under the price: plain text plus the saving in green.
-export function Offer({ p, style }) {
-  const [text, deal] =
-    p.kind === "case" ? [`Add 9H glass for ${inr(Math.floor(PRODUCTS.autoalign.price / 2))}`, "(50% off)"]
-    : p.kind === "glass" ? [`${inr(Math.floor(p.price / 2))} with any cover`, "(50% off)"]
-    : p.kind === "combo" ? ["Case + 9H glass", `(save ${inr(p.mrp - p.price)})`]
-    : [null];
-  if (!text) return null;
-  return (
-    <div style={{ fontSize: "14px", color: "#222222", ...style }}>
-      {text} <span style={{ color: "#1A7F4B", fontWeight: "500" }}>{deal}</span>
-    </div>
-  );
-}
-
 // The one product card used across the shop: photo on soft grey, details on a white panel.
 // Hovering cycles through all the product's photos; a swipe does the same on touch screens.
 // Clicking the photo opens Quick view. Adding puts one in the bag per selected iPhone model;
@@ -158,7 +143,7 @@ export default function ProductCard({ id }) {
             <span style={{ marginLeft: "3px", fontSize: "12px", color: "#666666" }}>{`${colors.length} colours`}</span>
           </div>
         )}
-        {soldOutFor.length ? <span style={{ fontSize: "13px", fontWeight: "500", color: "#C4281C" }}>{`Not available for ${modelsText(soldOutFor)}`}</span> : <Offer p={p} />}
+        {soldOutFor.length > 0 && <span style={{ fontSize: "13px", fontWeight: "500", color: "#C4281C" }}>{`Not available for ${modelsText(soldOutFor)}`}</span>}
         <span role="status" className="sr-only">
           {added ? `Added ${p.name} to bag${soldOutFor.length ? `, except ${modelsText(soldOutFor)}, which isn't available` : ""}` : ""}
         </span>

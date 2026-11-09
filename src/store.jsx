@@ -24,11 +24,12 @@ const save = (key, value) => {
     /* private mode or full storage: keep working in memory */
   }
 };
-// A saved bag is dropped if any line names a retired product or an option it no longer comes in.
+// A saved bag is dropped if any line names a retired product, an option it no longer comes in, or a
+// model no longer sold.
 const validVariant = (i) => optionsFor(PRODUCTS[i.id])?.some((o) => o.name === i.variant) ?? i.variant == null;
 const selling = (m) => MODELS.includes(m) && !isRetired(m);
 const validDevices = (v) => Array.isArray(v) && v.every(selling);
-const validCart = (v) => Array.isArray(v) && v.every((i) => PRODUCTS[i?.id] && Number.isInteger(i.qty) && i.qty > 0 && validVariant(i));
+const validCart = (v) => Array.isArray(v) && v.every((i) => PRODUCTS[i?.id] && Number.isInteger(i.qty) && i.qty > 0 && validVariant(i) && selling(i.device));
 
 // Pieces of one product / model / finish still available to this shopper: stock left minus what's
 // already in their bag. Infinity for products whose stock isn't tracked.

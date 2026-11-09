@@ -10,15 +10,12 @@ const ITEMS = Object.entries(PRODUCTS).map(([id, p]) => ({ id, ...p }));
 const CATS = [
   { id: "all", label: "All", title: "Shop all" },
   { id: "covers", label: "Covers", title: "iPhone covers" },
-  { id: "glass", label: "Glass & lens", title: "Tempered glass & lens" },
-  { id: "combos", label: "Combos", title: "Case + glass combos" },
 ];
 // Feature filters match words in a product's name or feature line; several narrow the list (AND).
 const FEATURES = [
   { id: "magsafe", label: "MagSafe", test: (p) => /magsafe/i.test(p.name + p.feat) },
   { id: "kickstand", label: "Kickstand", test: (p) => /kickstand/i.test(p.name + p.feat) },
   { id: "clear", label: "Clear", test: (p) => /clear/i.test(p.name + p.feat) },
-  { id: "originals", label: "SnapEdge Originals", test: (p) => p.name.startsWith("SnapEdge ") },
 ];
 // Price slider spans the catalogue, rounded out to ₹100 steps.
 const PRICES = ITEMS.map((p) => p.price);
@@ -41,7 +38,7 @@ const SORTS = [
 const pillStyle = (on) => ({ height: "40px", padding: "0 16px", borderRadius: "50px", border: `1px solid ${on ? "#111111" : "#DDDDDD"}`, background: on ? "#111111" : "#FFFFFF", color: on ? "#FFFFFF" : "#222222", fontFamily: "inherit", fontSize: "14px", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: "6px", flexShrink: "0" });
 
 // Collection: every product, with real category, feature and sort controls. The choices live in the
-// URL (?cat=glass&f=magsafe&sort=price-asc), so links can open it pre-filtered and the back button works.
+// URL (?cat=covers&f=magsafe&sort=price-asc), so links can open it pre-filtered and the back button works.
 export default function Collection() {
   const { devices, setDevices } = useStore();
   const [params, setParams] = useSearchParams();
@@ -90,7 +87,7 @@ export default function Collection() {
             <p id="col-help" style={{ margin: "0", maxWidth: "560px", fontSize: "15px", lineHeight: "1.6", color: "#555555" }}>
               {"Cut for "}
               <strong style={{ color: "#111111", fontWeight: "600" }}>{fitsText(devices)}</strong>
-              {". Add any cover and the 9H glass is 50% off."}
+              {"."}
             </p>
           </div>
           <div style={{ width: "100%", maxWidth: "360px", display: "flex", flexDirection: "column", gap: "8px" }}>

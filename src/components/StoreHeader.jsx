@@ -5,24 +5,21 @@ import { lockScroll } from "../motion/smoothScroll.js";
 import { closeWithExit, cancelExit, useDragDismiss } from "../motion/sheet.js";
 import ModelPicker from "./ModelPicker.jsx";
 import SocialLinks from "./SocialLinks.jsx";
+import Logo from "./Logo.jsx";
 
 // Primary nav; links point at homepage sections. `active` marks the link for the current page.
 const NAV = [
   { label: "Select iPhone Model", to: "/collection", caret: true },
-  { label: "MagSafe Covers", to: "/#lineup", active: "/product" },
-  { label: "Tempered Glass", to: "/#glass" },
-  { label: "Camera Lens Glass", to: "/#lineup" },
-  { label: "Case + Glass Combos", to: "/#bestsellers" },
+  { label: "Best Sellers", to: "/#bestsellers", active: "/product" },
+  { label: "MagSafe Covers", to: "/collection?f=magsafe" },
 ];
 
 // Menu drawer links (below 1360px). The "Your iPhone" row above them opens the model sub-view.
 const MENU = [
   { label: "Home", to: "/" },
   { label: "Shop all", to: "/collection" },
-  { label: "MagSafe Covers", to: "/#lineup" },
-  { label: "Tempered Glass", to: "/#glass" },
-  { label: "Camera Lens Glass", to: "/#lineup" },
-  { label: "Case + Glass Combos", to: "/#bestsellers" },
+  { label: "Best Sellers", to: "/#bestsellers" },
+  { label: "MagSafe Covers", to: "/collection?f=magsafe" },
 ];
 const roundBtn = { width: "56px", height: "56px", border: "1px solid #E6E6E6", borderRadius: "50px", background: "#FFFFFF", color: "#111111", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: "0" };
 
@@ -82,7 +79,7 @@ export default function StoreHeader() {
       {/* PROMO BAR */}
       <div className="se-root se-font" style={{ background: "#000000", color: "#FFFFFF", fontSize: "13px", letterSpacing: "0.02em" }}>
         <div className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "10px 40px", minHeight: "40px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px 14px", flexWrap: "wrap", textAlign: "center" }}>
-          <span style={{ fontWeight: "600" }}>Buy Any iPhone Cover + Get 50% Off 9H Tempered Glass</span>
+          <span style={{ fontWeight: "600" }}>Covers for iPhone 17 Pro & iPhone 18 Pro</span>
           <span className="promo-x" aria-hidden="true" style={{ color: "#666666" }}>
             |
           </span>
@@ -94,8 +91,7 @@ export default function StoreHeader() {
       <header ref={header} className="se-root se-font se-header" style={{ position: "sticky", top: "0", zIndex: "30" }}>
         <div className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "0 40px", height: "76px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "24px" }}>
           <Link to="/" aria-label="SnapEdge home" style={{ display: "flex", alignItems: "center", gap: "12px", color: "#000000", flexShrink: "0" }}>
-            <span style={{ width: "36px", height: "36px", background: "#000000", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "800", fontSize: "15px", letterSpacing: "-0.02em" }}>SE</span>
-            <span className="wordmark" style={{ fontWeight: "800", fontSize: "17px", letterSpacing: "0.16em", whiteSpace: "nowrap" }}>SNAP EDGE</span>
+            <Logo height={38} />
           </Link>
           <nav className="nav" aria-label="Primary" style={{ display: "flex", alignItems: "center", gap: "20px", fontSize: "13px", fontWeight: "600", whiteSpace: "nowrap" }}>
             {NAV.map((n) => (
@@ -124,7 +120,7 @@ export default function StoreHeader() {
               <label htmlFor="se-q" className="sr">
                 Search
               </label>
-              <input id="se-q" type="search" placeholder="Search covers, glass…" style={{ border: "0", background: "transparent", outline: "none", fontFamily: "inherit", fontSize: "13px", width: "124px", color: "#222222" }} />
+              <input id="se-q" type="search" placeholder="Search covers…" style={{ border: "0", background: "transparent", outline: "none", fontFamily: "inherit", fontSize: "13px", width: "124px", color: "#222222" }} />
             </div>
             <Link to="/signin" aria-label="Account" className="icon-btn" style={iconBtn}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

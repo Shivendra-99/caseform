@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { CORE_PRODUCTS, MODELS, inr, isRetired, optionsFor, variantId } from "../catalog.js";
+import { MODELS, inr, isRetired, optionsFor, variantId } from "../catalog.js";
 import { Icon } from "./ui.jsx";
 import { BUCKET, refreshShop, supabase, useProducts } from "./db.js";
 
@@ -79,7 +79,6 @@ function Form({ row, rows }) {
   const [errors, setErrors] = useState({});
   const [fail, setFail] = useState("");
   const [busy, setBusy] = useState(false);
-  const core = editing && CORE_PRODUCTS.includes(row.id);
   // Stock per variant. `startStock` is what was loaded; saves send it as "expected", so a sale made
   // meanwhile makes the save fail instead of being overwritten. Blank cell = not sold for that model.
   const num = editing ? row.p.num : Math.max(0, ...rows.map((r) => r.p.num)) + 1;
@@ -190,7 +189,7 @@ function Form({ row, rows }) {
       }
       setPhotos(done);
 
-      const fields = { name: f.name.trim(), feat: f.feat.trim(), colors: colorList, details: detailList, badge: f.badge, price: whole(f.price), mrp: whole(f.mrp), grams: whole(f.grams), imgs: done.map((ph) => ph.src), active: core || f.active };
+      const fields = { name: f.name.trim(), feat: f.feat.trim(), colors: colorList, details: detailList, badge: f.badge, price: whole(f.price), mrp: whole(f.mrp), grams: whole(f.grams), imgs: done.map((ph) => ph.src), active: f.active };
       const changes = stockChanges().length > 0;
       if (editing && changes) {
         // Stock first: if a sale changed it meanwhile, nothing is saved and the admin reloads.
@@ -414,10 +413,10 @@ function Form({ row, rows }) {
       <section className="adm-card adm-form-card" aria-labelledby="pf-visibility">
         <h2 id="pf-visibility">Visibility</h2>
         <label className="adm-check">
-          <input type="checkbox" checked={core || f.active} onChange={set("active")} disabled={core} />
+          <input type="checkbox" checked={f.active} onChange={set("active")} />
           <span>
             Show in the shop
-            <small>{core ? "The glass add-on and Complete the set use this product, so it always stays visible." : "Hidden products disappear from the shop and the Shiprocket feed, but keep their IDs so old orders still match."}</small>
+            <small>Hidden products disappear from the shop and the Shiprocket feed, but keep their IDs so old orders still match.</small>
           </span>
         </label>
       </section>

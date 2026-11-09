@@ -7,8 +7,8 @@ export const FREE_SHIPPING = 499;
 export const SHIPPING_FEE = 99;
 export const shippingFor = (subtotal) => (subtotal === 0 || subtotal >= FREE_SHIPPING ? 0 : SHIPPING_FEE);
 
-export const MODELS = ["iPhone 16 Pro Max", "iPhone 16 Pro", "iPhone 16 / 16 Plus", "iPhone 15 Series", "iPhone 14 Series", "iPhone 13 Series"];
-export const MODEL_CODES = ["16PM", "16P", "16", "15", "14", "13"];
+export const MODELS = ["iPhone 16 Pro Max", "iPhone 16 Pro", "iPhone 16 / 16 Plus", "iPhone 15 Series", "iPhone 14 Series", "iPhone 13 Series", "iPhone 17 Pro", "iPhone 17 Pro Max", "iPhone 18 Pro", "iPhone 18 Pro Max"];
+export const MODEL_CODES = ["16PM", "16P", "16", "15", "14", "13", "17P", "17PM", "18P", "18PM"];
 
 // Models grouped by series, newest first, for the model picker: [{ name: "iPhone 16", models: [...] }].
 // MODELS' order sets Shiprocket variant ids, so new models (added in /admin › iPhone models) go at
@@ -16,7 +16,8 @@ export const MODEL_CODES = ["16PM", "16P", "16", "15", "14", "13"];
 const SERIES = {};
 // Models removed in /admin stay in MODELS (variant ids and old orders depend on their position)
 // but aren't offered: left out of the picker and never in stock.
-const RETIRED = new Set();
+// Only the iPhone 17 / 18 Pro and Pro Max are sold now; the older models are retired.
+const RETIRED = new Set(MODELS.filter((m) => !/^iPhone 1[78] Pro/.test(m)));
 export const isRetired = (model) => RETIRED.has(model);
 export const MODEL_SERIES = [];
 function groupModels() {
@@ -74,35 +75,13 @@ const info = {
 // num/code: Shiprocket catalog id and SKU prefix (keep stable once synced; 101, 103, 105, 107 are retired).
 // grams: packed weight used for shipping. TODO: replace these estimates with real weights.
 export const PRODUCTS = {
-  "slim-shell-kickstand": cover(110, "SK", "Slim Shell Plus + Kickstand + MagSafe", "Slim clear shell · Ring kickstand · MagSafe", 899, 1499, { img: "/products/case-clr.png", imgs: ["/products/case-clr.png", "/products/clear-card-shape.jpg"] }, "new"),
-  "slim-shell-plus": cover(111, "SP", "Slim Shell Plus + MagSafe", "Slim clear shell · Camera ring guard · MagSafe", 699, 1199, { img: "/products/case-clr.png", imgs: ["/products/case-clr.png", "/products/clear-card-shape.jpg"] }, "best"),
-  "ss-ultra-clear": cover(112, "UC", "Slim Shell Ultra Clear + MagSafe", "Ultra-clear back · Slim profile · MagSafe", 699, 1199, { img: "/products/clear-card-shape.jpg", imgs: ["/products/clear-card-shape.jpg", "/products/case-clr.png"] }, "new"),
-  "anti-yellowing": cover(113, "AY", "Anti-Yellowing Case", "Anti-yellowing clear · Slim & lightweight · Metal buttons", 599, 999, { img: "/products/case-clr.png", imgs: ["/products/case-clr.png", "/products/clear-card-shape.jpg"], ...info.antiYellowing }, "best"),
-  "clear-card-shape": cover(114, "CS", "Clear Case – Apple Original Card Shape", "Apple-style clear shell · Metal camera frame · MagSafe", 799, 1299, { img: "/products/clear-card-shape.jpg", imgs: ["/products/clear-card-shape.jpg", "/products/case-clr.png"] }, "best"),
-  glitter: cover(115, "GL", "Electroplating Glitter Case", "Electroplated frame · Glitter gradient back · MagSafe", 799, 1299, img("glitter"), "new"),
   "dualtek-2colour": cover(116, "D2", "DualTek + MagSafe", "20 ft drop tested · Built-in corner bumpers · MagSafe", 1199, 1799, { img: "/products/case-blk.png", imgs: ["/products/case-blk.png", "/products/case-clr.png"], ...info.dualtek }, "best"),
-  "dualtek-kickstand": cover(117, "DK", "DualTek + Kickstand + MagSafe", "Dual-layer protection · Ring kickstand · MagSafe", 1299, 1999, { img: "/products/military-5.jpg", imgs: ["/products/military-5.jpg", "/products/case-blk.png"] }, "best"),
-  "dualtek-clear": cover(118, "DC", "DualTek Clear + MagSafe + Colour-Matched to iPhone", "Clear back · Frame matched to your iPhone · MagSafe", 1199, 1799, { img: "/products/case-nti.png", imgs: ["/products/case-nti.png", "/products/case-clr.png"] }, "new"),
+  "anti-yellowing": cover(113, "AY", "Anti-Yellowing Case", "Anti-yellowing clear · Slim & lightweight · Metal buttons", 599, 999, { img: "/products/case-clr.png", imgs: ["/products/case-clr.png", "/products/clear-card-shape.jpg"], ...info.antiYellowing }, "best"),
   "dualtek-studio": cover(119, "DS", "DualTek Studio + 360° Kickstand", "20 ft drop tested · 360° kickstand · Frosted anti-fingerprint back", 1499, 2299, { img: "/products/case-dti.png", imgs: ["/products/case-dti.png", "/products/case-nti.png"], ...info.studio }, "new"),
-  "dualtek-air": cover(120, "DA", "DualTek Air with MagSafe – Single Colour", "Lightweight dual-layer · MagSafe", 999, 1499, { img: "/products/case-blk.png", imgs: ["/products/case-blk.png", "/products/case-dti.png"] }, "sale"),
-  "dualtek-aura": cover(121, "DU", "DualTek Aura + Kickstand – Single Colour", "Gradient frosted back · Ring kickstand", 1199, 1799, { img: "/products/frost-blue.jpg", imgs: ["/products/frost-blue.jpg", "/products/berry-fade.jpg"] }, "new"),
-  military: cover(122, "MA", "Military Anti-Fall Case", "Rugged armour corners · Raised camera guard", 1299, 1999, { ...img("military"), imgs: ["military", "military-1", "military-2", "military-3", "military-4", "military-5"].map((f) => img(f).img) }, "best"),
   matte: cover(123, "MC", "Matte Case", "Minimal, sleek design · Slides into pockets · Tactile buttons", 599, 999, { ...img("matte"), ...info.matte }, "sale"),
   silicone: cover(124, "LS", "Liquid Silicone Case", "Premium liquid silicone · Microfiber lining · Slim & light", 699, 1199, { ...img("silicone"), ...info.silicone }, "best"),
-  // TODO: placeholder prices and no photos yet (drawn in COLORS[def]); set both in /admin.
   misttint: cover(131, "MS", "MistTint MagSafe Case", "Gradient matte back · Metal camera ring · MagSafe", 899, 1499, { def: 0, ...info.misttint }, "new"),
   "lens-grip": cover(132, "LP", "Lens Grip MagSafe Case", "Built-in lens stand & grip · Lens film included · MagSafe", 999, 1599, { def: 3, ...info.lensGrip }, "new"),
-  "holo-feather": cover(125, "HF", "SnapEdge Holo Feather MagSafe Case", "Iridescent feather finish · MagSafe", 899, 1499, img("holo-feather"), "new"),
-  "berry-fade": cover(126, "BF", "SnapEdge Berry Fade MagSafe Case", "Berry-to-frost gradient · MagSafe", 899, 1499, img("berry-fade"), "new"),
-  "frost-blue": cover(127, "FB", "SnapEdge Frost Blue MagSafe Case", "Frosted clear back · Blue frame · MagSafe", 899, 1499, img("frost-blue"), "new"),
-  "carbon-plum": cover(128, "CP", "SnapEdge Carbon-Weave Case – Plum", "Carbon-weave texture · Slim profile", 999, 1599, img("carbon-plum"), "sale"),
-  "lavender-matte": cover(129, "LM", "SnapEdge Soft Matte Case – Lavender", "Soft matte back · Slim profile", 799, 1299, img("lavender-matte"), "new"),
-
-  autoalign: { num: 102, code: "AA", grams: 80, kind: "glass", cat: "glass", name: "Auto-Align 9H Glass · 2-Pack", tag: "Glass", feat: "9H hardness · Oleophobic · Alignment tray", badge: "best", price: 599, mrp: 999, def: 0, img: "/products/glass-hd.png", imgs: ["/products/glass-hd.png", "/products/glass-pv.png", "/products/glass-mt.png"] },
-  fullframe: { num: 104, code: "FF", grams: 80, kind: "glass", cat: "glass", name: "Full-Frame 9H Glass · 2-Pack", tag: "Glass", feat: "Full cover · 9H hardness · Alignment tray", badge: "sale", price: 699, mrp: 1199, def: 1, img: "/products/glass-pv.png", imgs: ["/products/glass-pv.png", "/products/glass-hd.png"] },
-  edge2edge: { num: 106, code: "EE", grams: 80, kind: "glass", cat: "glass", name: "Edge-to-Edge 9H Glass · 2-Pack", tag: "Glass", feat: "Edge to edge · 9H hardness · Case-friendly", badge: "new", price: 649, mrp: 1099, def: 2, img: "/products/glass-mt.png", imgs: ["/products/glass-mt.png", "/products/glass-hd.png"] },
-  "armor-combo": { num: 108, code: "AC", grams: 125, kind: "combo", cat: "combos", name: "Military Case + 9H Glass Combo", tag: "Combos", feat: "Military Anti-Fall Case + Auto-Align glass 2-pack, glass at 50% off", badge: "best", price: 1599, mrp: 2998, def: 0, img: "/images/armormatrix.jpg", imgs: ["/images/armormatrix.jpg", "/products/military.jpg", "/products/glass-hd.png"] },
-  "lens-glass": { num: 109, code: "LG", grams: 25, kind: "lens", cat: "glass", name: "Camera Lens Glass · 2-Pack", tag: "Glass", feat: "Lens cover · Case-friendly", badge: "new", price: 399, mrp: 399, def: 0, img: "/products/lens.png" },
 };
 
 // Cover colours (products.colors) as [SKU code, swatch]. A colour's position is the last digit of its
@@ -130,8 +109,6 @@ export const stockLeft = (p, modelIdx, optIdx = 0) => (RETIRED.has(MODELS[modelI
 const CAT = { case: "covers", combo: "combos", glass: "glass", lens: "glass" };
 const TAG = { case: "Covers", combo: "Combos", glass: "Glass", lens: "Glass" };
 export const fromRow = (r) => ({ num: r.num, code: r.code, grams: r.grams, kind: r.kind, cat: CAT[r.kind], tag: TAG[r.kind], name: r.name, feat: r.feat, badge: r.badge, price: r.price, mrp: r.mrp, def: r.def, img: r.imgs[0] ?? null, imgs: r.imgs, colors: r.colors ?? [], details: r.details ?? [] });
-// The glass add-on offer and the "Complete the set" row are built on these, so they can't be hidden.
-export const CORE_PRODUCTS = ["autoalign", "lens-glass"];
 
 let loadedAt = 0;
 // Calls within `maxAge` ms reuse the last load, so a server function doesn't query on every request.
@@ -162,7 +139,7 @@ export async function loadProducts(url, key, { maxAge = 60_000, timeout = 4000 }
 }
 
 // Order of the homepage Best Sellers grid.
-export const BEST_SELLERS = ["military", "autoalign", "holo-feather", "silicone", "clear-card-shape", "fullframe", "berry-fade", "armor-combo"];
+export const BEST_SELLERS = ["dualtek-2colour", "anti-yellowing", "dualtek-studio", "matte", "silicone", "misttint", "lens-grip"];
 
 const isCover = (p) => p.kind === "case" || p.kind === "combo";
 

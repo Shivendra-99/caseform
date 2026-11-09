@@ -1,16 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useStore, stockFor } from "../store.jsx";
-import { MODELS, MODEL_CODES, COLORS, FINISHES, PRODUCTS, inr, fitsText, modelsText, optionsFor } from "../catalog.js";
-import ProductArt from "../components/ProductArt.jsx";
+import { MODELS, MODEL_CODES, PRODUCTS, inr, fitsText, modelsText, optionsFor } from "../catalog.js";
 import ProductGallery, { photosOf } from "../components/ProductGallery.jsx";
 import ModelPicker from "../components/ModelPicker.jsx";
-import ProductCard, { BADGES, Offer } from "../components/ProductCard.jsx";
+import ProductCard, { BADGES } from "../components/ProductCard.jsx";
 import Promises from "../components/Promises.jsx";
 
-const GLASS = PRODUCTS.autoalign;
-const GLASS_WITH_CASE = Math.floor(GLASS.price / 2);
-const LENS = PRODUCTS["lens-glass"];
 const COVERS = Object.keys(PRODUCTS).filter((id) => PRODUCTS[id].kind === "case");
 const off = (p) => Math.round(((p.mrp - p.price) / p.mrp) * 100);
 const check = (
@@ -20,7 +16,7 @@ const check = (
 );
 
 // /product?id=<cover id>; an unknown id shows the first cover. Keyed by id, so moving to another
-// product (e.g. from "You may also like") starts fresh: first photo, quantity 1, no glass add-on.
+// product (e.g. from "You may also like") starts fresh: first photo, quantity 1.
 export default function ProductPage() {
   const [params] = useSearchParams();
   const id = COVERS.includes(params.get("id")) ? params.get("id") : COVERS[0];
@@ -46,9 +42,7 @@ function Product({ id }) {
   const color = colors?.[ci];
   const sku = devices.map((d) => ["SE", cover.code, MODEL_CODES[MODELS.indexOf(d)], color?.code].filter(Boolean).join("-")).join(", ");
   const [qty, setQty] = useState(1);
-  const [glassOn, setGlassOn] = useState(false);
-  const [gi, setGi] = useState(0);
-  const [added, setAdded] = useState(null); // "bag" | "set" while showing the tick
+  const [added, setAdded] = useState(false); // showing the tick
   // Stock for each selected model, minus what's already in the bag (Infinity if this cover isn't tracked).
   const left = devices.map((d) => stockFor(id, d, color?.name, cart));
   const soldOutFor = devices.filter((_, k) => left[k] < 1);
@@ -57,29 +51,18 @@ function Product({ id }) {
   const maxQty = Math.min(10, ...left.filter((x) => x > 0));
   const qn = Math.max(1, Math.min(qty, maxQty)); // the quantity shown and added
 
-  const total = (cover.price + (glassOn ? GLASS_WITH_CASE : 0)) * qn * inStock;
-  const setPrice = (cover.price + GLASS_WITH_CASE + LENS.price) * (n || 1);
+  const total = cover.price * qn * inStock;
   // "All iPhone models" is selected: the buy buttons open the model picker instead.
   const chooseModel = () => {
     const b = document.querySelector('[aria-labelledby^="pp-model-label"]');
     b?.scrollIntoView({ block: "center" });
     b?.click();
   };
-  const flash = (what) => {
-    setAdded(what);
-    setTimeout(() => setAdded((x) => (x === what ? null : x)), 1800);
+  const flash = () => {
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1800);
   };
-  // The bag applies "glass 50% off with any cover", so glass is added at its list price.
-  const addCaseAndGlass = () => {
-    addForModels(id, qn, color?.name);
-    if (glassOn) addForModels("autoalign", qn, FINISHES[gi].name);
-  };
-  const addSet = () => {
-    addForModels(id, 1, color?.name);
-    addForModels("autoalign", 1, FINISHES[0].name);
-    addForModels("lens-glass", 1);
-    flash("set");
-  };
+  const addToBag = () => addForModels(id, qn, color?.name);
 
   return (
     <main className="se-root se-font" style={{ background: "#FFFFFF" }}>
@@ -117,7 +100,6 @@ function Product({ id }) {
                 <span style={{ fontSize: "14px", fontWeight: "600", color: "#C4281C" }}>{off(cover)}% off</span>
               </div>
               <span style={{ marginTop: "-6px", fontSize: "13px", color: "#666666" }}>Inclusive of all taxes</span>
-              <Offer p={cover} style={{ fontSize: "15px" }} />
               <ul style={{ listStyle: "none", margin: "4px 0 0", padding: "0", display: "flex", flexDirection: "column", gap: "8px", fontSize: "15px", color: "#333333" }}>
                 {feats.map((f) => (
                   <li key={f} style={{ display: "flex", gap: "10px" }}>
@@ -154,32 +136,6 @@ function Product({ id }) {
               </span>
             </div>
 
-            <div>
-              <label className="pp-addon" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 14px 10px 12px", borderRadius: "14px", border: `1px solid ${glassOn ? "#111111" : "#E2E2E2"}`, background: "#FFFFFF", cursor: "pointer", transition: "border-color 150ms ease" }}>
-                <input type="checkbox" checked={glassOn} onChange={() => setGlassOn((g) => !g)} style={{ width: "18px", height: "18px", margin: "0", accentColor: "#111111", flexShrink: "0", cursor: "pointer" }} />
-                <span aria-hidden="true" style={{ width: "36px", height: "42px", flexShrink: "0", borderRadius: "8px", background: "#F6F6F6", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <ProductArt kind="glass" finish={FINISHES[gi]} style={{ width: "100%", height: "100%" }} />
-                </span>
-                <span style={{ flex: "1 1 auto", minWidth: "0", display: "flex", flexDirection: "column", gap: "1px" }}>
-                  <span style={{ fontSize: "14px", fontWeight: "500", color: "#111111" }}>{`Add ${GLASS.name}`}</span>
-                  <span style={{ fontSize: "12px", color: "#1A7F4B", fontWeight: "500" }}>50% off with this case</span>
-                </span>
-                <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", flexShrink: "0" }}>
-                  <span style={{ fontSize: "15px", fontWeight: "600", color: "#111111" }}>{inr(GLASS_WITH_CASE)}</span>
-                  <s style={{ fontSize: "12px", color: "#8A8A8A" }}>{inr(GLASS.price)}</s>
-                </span>
-              </label>
-              {glassOn && (
-                <div role="group" aria-label="Glass finish" style={{ display: "flex", flexWrap: "wrap", gap: "6px", paddingTop: "10px" }}>
-                  {FINISHES.map((f, k) => (
-                    <button key={f.name} type="button" aria-pressed={k === gi} onClick={() => setGi(k)} style={{ height: "32px", padding: "0 12px", borderRadius: "40px", border: `1px solid ${k === gi ? "#111111" : "#DDDDDD"}`, background: k === gi ? "#111111" : "#FFFFFF", color: k === gi ? "#FFFFFF" : "#222222", fontFamily: "inherit", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}>
-                      {f.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <div style={{ display: "flex", gap: "8px" }}>
                 <div role="group" aria-label="Quantity" style={{ display: "flex", alignItems: "center", height: "48px", border: "1px solid #DDDDDD", borderRadius: "50px", padding: "0 4px", flexShrink: "0" }}>
@@ -197,15 +153,15 @@ function Product({ id }) {
                     </svg>
                   </button>
                 </div>
-                <button type="button" className="btn-solid" disabled={n > 0 && !inStock} onClick={() => (n ? (addCaseAndGlass(), flash("bag")) : chooseModel())} style={{ flex: "1 1 auto", height: "48px", padding: "0 18px", border: "0", borderRadius: "50px", background: inStock || !n ? "#111111" : "#BBBBBB", color: "#FFFFFF", fontFamily: "inherit", fontSize: "15px", fontWeight: "600", cursor: inStock || !n ? "pointer" : "default" }}>
-                  {added === "bag" ? "Added to bag ✓" : !n ? "Choose your iPhone model" : inStock ? `Add to bag · ${inr(total)}` : "Sold out"}
+                <button type="button" className="btn-solid" disabled={n > 0 && !inStock} onClick={() => (n ? (addToBag(), flash()) : chooseModel())} style={{ flex: "1 1 auto", height: "48px", padding: "0 18px", border: "0", borderRadius: "50px", background: inStock || !n ? "#111111" : "#BBBBBB", color: "#FFFFFF", fontFamily: "inherit", fontSize: "15px", fontWeight: "600", cursor: inStock || !n ? "pointer" : "default" }}>
+                  {added ? "Added to bag ✓" : !n ? "Choose your iPhone model" : inStock ? `Add to bag · ${inr(total)}` : "Sold out"}
                 </button>
               </div>
-              <button type="button" className="btn-ghost" disabled={n > 0 && !inStock} onClick={() => (n ? (addCaseAndGlass(), navigate("/cart")) : chooseModel())} style={{ height: "48px", border: "1px solid #111111", borderRadius: "50px", background: "#FFFFFF", color: "#111111", fontFamily: "inherit", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>
+              <button type="button" className="btn-ghost" disabled={n > 0 && !inStock} onClick={() => (n ? (addToBag(), navigate("/cart")) : chooseModel())} style={{ height: "48px", border: "1px solid #111111", borderRadius: "50px", background: "#FFFFFF", color: "#111111", fontFamily: "inherit", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>
                 Buy now
               </button>
               <span role="status" className="sr-only">
-                {added === "bag" ? `Added ${cover.name}${color ? `, ${color.name},` : ""} to bag` : added === "set" ? "Added the set to bag" : ""}
+                {added ? `Added ${cover.name}${color ? `, ${color.name},` : ""} to bag` : ""}
               </span>
               {soldOutFor.length > 0 && <span style={{ fontSize: "13px", fontWeight: "500", color: "#C4281C" }}>{`Not available for ${modelsText(soldOutFor)}.${inStock ? " Your other models will still be added." : ""}`}</span>}
               {lowFor.length > 0 && <span style={{ fontSize: "13px", fontWeight: "500", color: "#7A5200" }}>{lowFor.map((d) => `Only ${left[devices.indexOf(d)]} left for ${d}`).join(" · ")}</span>}
@@ -238,8 +194,7 @@ function Product({ id }) {
                       ))}
                     </ul>
                   )}
-                  <p style={{ margin: "0 0 12px" }}>{`${cover.name}, cut for ${allFits}.`}</p>
-                  <p style={{ margin: "0" }}>{`Pairs with our ${GLASS.name}: add it with this case and the glass is half price.`}</p>
+                  <p style={{ margin: "0" }}>{`${cover.name}, cut for ${allFits}.`}</p>
                 </div>
               </details>
               <details>
@@ -303,47 +258,6 @@ function Product({ id }) {
           </div>
         </div>
       </div>
-
-      {/* COMPLETE THE SET: same grey-shell / white-tile language as the cards. */}
-      <section style={{ borderTop: "1px solid #EEEEEE" }}>
-        <div className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "72px 40px", display: "flex", flexDirection: "column", gap: "24px" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <h2 className="hx" style={{ margin: "0", fontSize: "36px", lineHeight: "1.1", fontWeight: "800", letterSpacing: "-0.03em", color: "#111111" }}>
-              Complete the set
-            </h2>
-            <p style={{ margin: "0", fontSize: "15px", color: "#555555" }}>Case, screen glass and camera lens glass. The glass is half price with the case.</p>
-          </div>
-          <div className="pp-set">
-            {[
-              { name: cover.name, art: <ProductArt kind="case" img={cover.img} alt="" color={COLORS[cover.def]} style={{ width: "76%", height: "76%" }} />, price: inr(cover.price) },
-              { name: GLASS.name, art: <ProductArt kind="glass" finish={FINISHES[0]} style={{ width: "76%", height: "76%" }} />, price: inr(GLASS_WITH_CASE), was: inr(GLASS.price) },
-              { name: LENS.name, art: <ProductArt kind="lens" style={{ width: "76%", height: "76%" }} />, price: inr(LENS.price) },
-            ].map((it) => (
-              <div key={it.name} style={{ background: "#FFFFFF", borderRadius: "16px", padding: "12px", display: "flex", flexDirection: "column", gap: "10px", minWidth: "0" }}>
-                <div aria-hidden="true" style={{ aspectRatio: "1 / 1", borderRadius: "12px", background: "#F6F6F6", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-                  {it.art}
-                </div>
-                <span style={{ fontSize: "15px", fontWeight: "500", color: "#222222" }}>{it.name}</span>
-                <span style={{ fontSize: "15px", color: "#111111" }}>
-                  {it.price}
-                  {it.was && <s style={{ marginLeft: "8px", fontSize: "13px", color: "#8A8A8A" }}>{it.was}</s>}
-                </span>
-              </div>
-            ))}
-            <div style={{ background: "#FFFFFF", borderRadius: "16px", padding: "20px", display: "flex", flexDirection: "column", justifyContent: "center", gap: "10px" }}>
-              <span style={{ fontSize: "14px", color: "#666666" }}>{n > 1 ? `${3 * n} items · one set per model` : "3 items"}</span>
-              <span style={{ display: "flex", alignItems: "baseline", gap: "10px", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "28px", fontWeight: "600", color: "#111111" }}>{inr(setPrice)}</span>
-                <s style={{ fontSize: "15px", color: "#8A8A8A" }}>{inr((cover.price + GLASS.price + LENS.price) * (n || 1))}</s>
-              </span>
-              <span style={{ fontSize: "14px", color: "#1A7F4B", fontWeight: "500" }}>{`You save ${inr((GLASS.price - GLASS_WITH_CASE) * (n || 1))}`}</span>
-              <button type="button" className="btn-solid" onClick={n ? addSet : chooseModel} style={{ height: "52px", marginTop: "6px", border: "0", borderRadius: "50px", background: "#111111", color: "#FFFFFF", fontFamily: "inherit", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>
-                {added === "set" ? "Added ✓" : n ? "Add all to bag" : "Choose your iPhone model"}
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <section style={{ borderTop: "1px solid #EEEEEE" }}>
         <div className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "72px 40px 96px", display: "flex", flexDirection: "column", gap: "28px" }}>

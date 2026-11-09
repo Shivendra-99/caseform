@@ -25,11 +25,15 @@ create policy "Admins add devices" on public.devices for insert to authenticated
 drop policy if exists "Admins rename devices" on public.devices;
 create policy "Admins rename devices" on public.devices for update to authenticated using (public.is_admin()) with check (public.is_admin());
 
-insert into public.devices (idx, name, code, series, sells_untracked) values
-  (0, 'iPhone 16 Pro Max', '16PM', 'iPhone 16', true),
-  (1, 'iPhone 16 Pro', '16P', 'iPhone 16', true),
-  (2, 'iPhone 16 / 16 Plus', '16', 'iPhone 16', true),
-  (3, 'iPhone 15 Series', '15', 'iPhone 15', true),
-  (4, 'iPhone 14 Series', '14', 'iPhone 14', true),
-  (5, 'iPhone 13 Series', '13', 'iPhone 13', true)
+insert into public.devices (idx, name, code, series, sells_untracked, active) values
+  (0, 'iPhone 16 Pro Max', '16PM', 'iPhone 16', true, false),
+  (1, 'iPhone 16 Pro', '16P', 'iPhone 16', true, false),
+  (2, 'iPhone 16 / 16 Plus', '16', 'iPhone 16', true, false),
+  (3, 'iPhone 15 Series', '15', 'iPhone 15', true, false),
+  (4, 'iPhone 14 Series', '14', 'iPhone 14', true, false),
+  (5, 'iPhone 13 Series', '13', 'iPhone 13', true, false),
+  (6, 'iPhone 17 Pro', '17P', 'iPhone 17', true, true),
+  (7, 'iPhone 17 Pro Max', '17PM', 'iPhone 17', true, true),
+  (8, 'iPhone 18 Pro', '18P', 'iPhone 18', true, true),
+  (9, 'iPhone 18 Pro Max', '18PM', 'iPhone 18', true, true)
 on conflict (idx) do nothing;

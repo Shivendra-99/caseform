@@ -11,10 +11,10 @@ const mono = { fontFamily: "'IBM Plex Mono', ui-monospace, monospace" };
 // `pics` are drawn as "cards" (lifestyle shots on a surface) or "cutout" (studio shots on white,
 // multiplied into the slide colour).
 const SLIDES = [
-  { kicker: "New · SnapEdge Originals", title: ["Our own designs,", "five finishes."], text: "Holo, berry fade, frosted blue, carbon-weave and soft matte cases, designed by SnapEdge.", cta: "Shop Originals", ids: ["holo-feather", "berry-fade", "frost-blue", "carbon-plum", "lavender-matte"], bg: "#ECE7F3", look: "cards" },
-  { kicker: "Military Anti-Fall Case", title: ["Built for", "the drop."], text: "Rugged armour corners and a raised guard around the camera.", cta: "Shop Military Case", ids: ["military"], bg: "#ECEAE5", look: "cutout" },
-  { kicker: "Liquid Silicone Case", title: ["Soft to hold,", "easy to grip."], text: "Soft-touch liquid silicone with MagSafe built in.", cta: "Shop Silicone Case", ids: ["silicone"], bg: "#E5EDF4", look: "cutout" },
-  { kicker: "Clear Case – Apple Original Card Shape", title: ["Show off", "your iPhone."], text: "An Apple-style clear shell with a metal camera frame and MagSafe.", cta: "Shop Clear Case", ids: ["clear-card-shape"], bg: "#EDF0F1", look: "cutout" },
+  { kicker: "DualTek + MagSafe", title: ["Built for", "the drop."], text: "Certified 20 ft drop tested, with built-in corner bumpers and MagSafe.", cta: "Shop DualTek", ids: ["dualtek-2colour"], bg: "#ECEAE5", look: "cutout" },
+  { kicker: "DualTek Studio + 360° Kickstand", title: ["Stand it up,", "any angle."], text: "A 360° adjustable kickstand and a matte finish that resists fingerprints.", cta: "Shop DualTek Studio", ids: ["dualtek-studio"], bg: "#ECE7F3", look: "cutout" },
+  { kicker: "Liquid Silicone Case", title: ["Soft to hold,", "easy to grip."], text: "Soft-touch liquid silicone with a microfiber lining.", cta: "Shop Silicone Case", ids: ["silicone"], bg: "#E5EDF4", look: "cutout" },
+  { kicker: "Anti-Yellowing Case", title: ["Stays clear,", "stays slim."], text: "A clear case with anti-yellowing protection and easy-press metal buttons.", cta: "Shop Anti-Yellowing", ids: ["anti-yellowing"], bg: "#EDF0F1", look: "cutout" },
 ];
 // Prices come from the live catalog, so they're worked out at render time; a slide whose products
 // are all hidden in /admin is skipped.
@@ -134,7 +134,7 @@ export default function HeroCarousel() {
 
   return (
     <section id="top" data-motion-skip aria-roledescription="carousel" aria-label="Featured collections" style={{ background: "#FFFFFF" }}>
-      <h1 className="sr">SnapEdge iPhone covers and 9H tempered glass</h1>
+      <h1 className="sr">SnapEdge covers for iPhone 17 Pro and iPhone 18 Pro</h1>
       <div className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "24px 40px 8px" }}>
         <div
           className="hero-card"

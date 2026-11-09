@@ -3,45 +3,37 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { quote } from "./quote.js";
 
-const M = "iPhone 16 Pro Max";
+const M = "iPhone 17 Pro";
 
-test("glass is half price when the bag has a cover", () => {
+test("prices come from the catalog and covers ship free", () => {
   const q = quote([
-    { id: "military", qty: 1, device: M },
-    { id: "autoalign", qty: 1, device: M, variant: "HD Clear" },
+    { id: "matte", qty: 1, device: M, variant: "Black" },
+    { id: "silicone", qty: 1, device: M, variant: "Blue" },
   ]);
-  assert.equal(q.lines[1].unitPrice, 299);
-  assert.equal(q.subtotal, 1299 + 299);
+  assert.equal(q.subtotal, 599 + 699);
   assert.equal(q.shipping, 0);
-  assert.equal(q.total, 1598);
-});
-
-test("glass alone is full price; small orders pay shipping", () => {
-  assert.equal(quote([{ id: "autoalign", qty: 1, device: M, variant: "HD Clear" }]).lines[0].unitPrice, 599);
-  const lens = quote([{ id: "lens-glass", qty: 1, device: M }]);
-  assert.equal(lens.shipping, 99);
-  assert.equal(lens.total, 399 + 99);
+  assert.equal(q.total, 1298);
 });
 
 test("rejects anything the client could tamper with", () => {
+  const ok = { id: "matte", qty: 1, device: M, variant: "Black" };
   const bad = [
     [],
-    [{ id: "edge-armor", qty: 1, device: M }], // retired product
-    [{ id: "nope", qty: 1, device: M }],
-    [{ id: "military", qty: 0, device: M }],
-    [{ id: "military", qty: 1.5, device: M }],
-    [{ id: "military", qty: 11, device: M }],
-    [{ id: "military", qty: 1, device: "Pixel 9" }],
-    [{ id: "military", qty: 1, device: M, variant: "Black" }], // covers have no colour options
-    [{ id: "autoalign", qty: 1, device: M, variant: "Gold" }],
-    [{ id: "lens-glass", qty: 1, device: M, variant: "Black" }],
+    [{ ...ok, id: "military" }], // product no longer sold
+    [{ ...ok, id: "nope" }],
+    [{ ...ok, qty: 0 }],
+    [{ ...ok, qty: 1.5 }],
+    [{ ...ok, qty: 11 }],
+    [{ ...ok, device: "Pixel 9" }],
+    [{ ...ok, variant: "Pink" }], // not one of its colours
+    [{ ...ok, variant: undefined }], // colour must be picked
   ];
   for (const items of bad) assert.throws(() => quote(items), { status: 400 }, JSON.stringify(items));
 });
 
 test("client-sent prices are ignored", () => {
-  const q = quote([{ id: "military", qty: 2, device: M, price: 1, unitPrice: 1 }]);
-  assert.equal(q.total, 2598);
+  const q = quote([{ id: "matte", qty: 2, device: M, variant: "Black", price: 1, unitPrice: 1 }]);
+  assert.equal(q.total, 1198);
 });
 
 test("covers with colours: must pick one, and the first keeps the old variant id", async () => {
@@ -51,5 +43,5 @@ test("covers with colours: must pick one, and the first keeps the old variant id
   assert.throws(() => quote([{ id: "silicone", qty: 1, device: M }]), /valid option/);
   assert.throws(() => quote([{ id: "silicone", qty: 1, device: M, variant: "Pink" }]), /valid option/);
   assert.equal(variantId(PRODUCTS.silicone, 0, 0), 124000); // same id the colourless cover had
-  assert.deepEqual(parseVariantId(124002), { id: "silicone", device: M, variant: "Blue" });
+  assert.deepEqual(parseVariantId(124062), { id: "silicone", device: M, variant: "Blue" });
 });

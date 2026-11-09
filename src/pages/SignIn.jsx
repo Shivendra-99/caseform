@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Logo from "../components/Logo.jsx";
 
 const RESEND_AFTER = 30; // seconds before "Resend code" unlocks
 const pretty = (d) => (d.length > 5 ? `${d.slice(0, 5)} ${d.slice(5)}` : d);
@@ -62,8 +63,7 @@ export default function SignIn() {
     <main className="se-root se-font si-page">
       <header className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "20px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px" }}>
         <Link to="/" aria-label="SnapEdge home" style={{ display: "flex", alignItems: "center", gap: "10px", color: "#000000" }}>
-          <span style={{ width: "32px", height: "32px", background: "#000000", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "800", fontSize: "13px", letterSpacing: "-0.02em" }}>SE</span>
-          <span style={{ fontWeight: "800", fontSize: "15px", letterSpacing: "0.16em" }}>SNAP EDGE</span>
+          <Logo height={34} />
         </Link>
         <Link to="/" className="si-quiet" style={{ display: "inline-flex", alignItems: "center", gap: "6px", height: "44px", fontSize: "14px", fontWeight: "500", color: "#555555" }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

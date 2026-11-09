@@ -4,21 +4,21 @@ import assert from "node:assert/strict";
 import { PRODUCTS, stockLeft } from "../../src/catalog.js";
 import { reserve } from "./stock.js";
 
-// military = product 122; variant 122030 = iPhone 15 Series. Track it with 1 piece for these tests.
-const VID = 122030;
-const track = () => (PRODUCTS.military.stock = { [VID]: 1 });
-const untrack = () => delete PRODUCTS.military.stock;
+// matte = product 123; variant 123060 = iPhone 17 Pro, Black. Track it with 1 piece for these tests.
+const VID = 123060;
+const track = () => (PRODUCTS.matte.stock = { [VID]: 1 });
+const untrack = () => delete PRODUCTS.matte.stock;
 
 test("untracked products have no limit and need no reservation", async () => {
   untrack();
-  assert.equal(stockLeft(PRODUCTS.military, 3), Infinity);
+  assert.equal(stockLeft(PRODUCTS.matte, 6), Infinity);
   assert.equal(await reserve([{ variant_id: VID, qty: 5 }]), null);
 });
 
 test("tracked: pieces left, and models without a count aren't sold", () => {
   track();
-  assert.equal(stockLeft(PRODUCTS.military, 3), 1);
-  assert.equal(stockLeft(PRODUCTS.military, 0), 0);
+  assert.equal(stockLeft(PRODUCTS.matte, 6), 1);
+  assert.equal(stockLeft(PRODUCTS.matte, 7), 0);
   untrack();
 });
 
@@ -36,7 +36,7 @@ test("a sold-out answer from the database becomes a clear 409 naming the item", 
   const realFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response(JSON.stringify({ message: `out_of_stock:${VID}` }), { status: 400 });
   try {
-    await assert.rejects(reserve([{ variant_id: VID, qty: 1 }]), (e) => e.status === 409 && /Military Anti-Fall Case for iPhone 15 Series just sold out/.test(e.message));
+    await assert.rejects(reserve([{ variant_id: VID, qty: 1 }]), (e) => e.status === 409 && /Matte Case for iPhone 17 Pro \(Black\) just sold out/.test(e.message));
   } finally {
     globalThis.fetch = realFetch;
     delete process.env.SUPABASE_SECRET_KEY;

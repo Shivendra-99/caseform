@@ -6,7 +6,7 @@ import { startCheckout } from "../checkout.js";
 import ProductArt from "../components/ProductArt.jsx";
 
 export default function Cart() {
-  const { lines, count, subtotal, mrpTotal, device, addToCart, setQty, clearCart } = useStore();
+  const { lines, count, subtotal, mrpTotal, setQty, clearCart } = useStore();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -14,7 +14,6 @@ export default function Cart() {
   const shipping = shippingFor(subtotal);
   const total = subtotal + shipping;
   const savings = mrpTotal - subtotal;
-  const hasLens = lines.some((l) => l.id === "lens-glass");
 
   const checkout = async (e) => {
     setBusy(true);
@@ -110,7 +109,7 @@ export default function Cart() {
                     Your bag is empty
                   </p>
                   <Link to="/collection" className="h-11 px-space-md rounded-lg bg-primary text-on-primary font-label-md text-label-md uppercase tracking-wider flex items-center">
-                    Browse Cases & Glass
+                    Browse Cases
                   </Link>
                 </div>
               )}
@@ -202,37 +201,6 @@ export default function Cart() {
                   </div>
                 </div>
               ))}
-              {lines.length > 0 && !hasLens && (
-                <div className="bg-surface-card rounded-xl p-space-md shadow-sm">
-                  <h3 className="font-headline-sm text-headline-sm text-primary font-semibold mb-space-sm">
-                    Protect the camera too
-                  </h3>
-                  <div className="bg-surface-container-lowest rounded-lg p-space-sm flex flex-col sm:flex-row items-center justify-between gap-space-sm">
-                    <div className="flex items-center gap-space-sm w-full sm:w-auto">
-                      <div className="w-16 h-16 rounded bg-surface-container-low shrink-0 overflow-hidden flex items-center justify-center p-1">
-                        <ProductArt kind="lens" />
-                      </div>
-                      <div>
-                        <p className="font-label-lg text-label-lg text-primary font-semibold">
-                          Camera Lens Glass · 2-Pack
-                        </p>
-                        <p className="font-body-sm text-body-sm text-on-surface-variant">
-                          Fits {device} • Case-friendly
-                        </p>
-                        <span className="font-price-md text-price-md text-primary font-bold">
-                          {inr(399)}
-                        </span>
-                      </div>
-                    </div>
-                    <button className="w-full sm:w-auto h-10 px-space-md rounded-lg bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container font-label-md text-label-md uppercase tracking-wider transition-all whitespace-nowrap flex items-center justify-center gap-1" onClick={() => addToCart("lens-glass", 1, device)} type="button">
-                      <span className="material-symbols-outlined text-[16px]">
-                        add
-                      </span>
-                      Add to Bag
-                    </button>
-                  </div>
-                </div>
-              )}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-space-sm pt-space-xs">
                 <div className="bg-surface-container-lowest p-space-sm rounded-lg flex items-center gap-space-xs">
                   <span className="material-symbols-outlined text-secondary text-[24px]">

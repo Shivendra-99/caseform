@@ -1,0 +1,20 @@
+-- Product details from "Information For Website.xlsx": colours, full feature lists, and two new covers.
+-- One-off for the live database. Run in Supabase › SQL Editor after schema.sql. Safe to re-run.
+alter table public.products add column if not exists colors text[] not null default '{}' check (cardinality(colors) <= 10);
+alter table public.products add column if not exists details text[] not null default '{}';
+
+update public.products set name = 'DualTek + MagSafe', feat = '20 ft drop tested · Built-in corner bumpers · MagSafe', colors = array['White', 'Black']::text[], details = array['Ultra protection. Certified 20 ft. drop tested', 'Built-in corner bumpers for extra protection', 'Shock-absorbing materials for better impact protection', 'Comfortable design for an easy and secure grip']::text[] where id = 'dualtek-2colour';
+update public.products set name = 'Anti-Yellowing Case', feat = 'Anti-yellowing clear · Slim & lightweight · Metal buttons', colors = array['Clear', 'Black', 'Blue']::text[], details = array['Clear design with anti-yellowing protection', 'Slim and lightweight', 'Easy to put on and remove', 'Easy-to-press metal buttons']::text[] where id = 'anti-yellowing';
+update public.products set name = 'DualTek Studio + 360° Kickstand', feat = '20 ft drop tested · 360° kickstand · Frosted anti-fingerprint back', colors = array['Orange', 'Black', 'Blue', 'Burgundy']::text[], details = array['Ultra protection. Certified 20 ft. drop tested', 'Stylish matte finish that resists fingerprints', 'Built-in corner bumpers for extra impact protection', '360° adjustable kickstand with a secure, anti-slip grip']::text[] where id = 'dualtek-studio';
+update public.products set name = 'Matte Case', feat = 'Minimal, sleek design · Slides into pockets · Tactile buttons', colors = array['Black']::text[], details = array['Slim and lightweight design', 'Fits easily into your pocket', 'Raised edges protect the screen from scratches and scuffs', 'Tactile buttons for easy and smooth control']::text[] where id = 'matte';
+update public.products set name = 'Liquid Silicone Case', feat = 'Premium liquid silicone · Microfiber lining · Slim & light', colors = array['Beige', 'Black', 'Blue']::text[], details = array['Soft and smooth silicone finish for a comfortable grip', 'Soft microfiber lining protects against scratches and dust', 'Slim and lightweight design without adding bulk']::text[] where id = 'silicone';
+
+-- New covers. TODO: prices are placeholders and there are no photos yet: set both in /admin.
+insert into public.products (id, num, code, kind, name, feat, badge, price, mrp, grams, def, imgs, colors, details, sort) values
+  ('misttint', 131, 'MS', 'case', 'MistTint MagSafe Case', 'Gradient matte back · Metal camera ring · MagSafe', 'new', 899, 1499, 40, 0, '{}'::text[], array['Orange', 'Black', 'Blue', 'Burgundy']::text[], array['Slim and lightweight PC body', 'Premium metal camera ring and buttons', 'Stylish gradient back with a smooth matte finish']::text[], 152),
+  ('lens-grip', 132, 'LP', 'case', 'Lens Grip MagSafe Case', 'Built-in lens stand & grip · Lens film included · MagSafe', 'new', 999, 1599, 40, 3, '{}'::text[], array['Blue', 'Clear']::text[], array['Premium PC + TPU construction for strong everyday protection', 'Built-in lens stand for hands-free viewing and easy selfies', 'HD tempered glass for crystal-clear protection', 'Scratch-resistant and anti-fingerprint finish to keep your case looking clean']::text[], 154)
+on conflict (id) do update set name = excluded.name, feat = excluded.feat, colors = excluded.colors, details = excluded.details;
+
+-- The shop sells only these seven covers; everything else is hidden (kept, so old orders still match).
+update public.products set active = (id in ('dualtek-2colour', 'anti-yellowing', 'dualtek-studio', 'matte', 'silicone', 'misttint', 'lens-grip'))
+  where active is distinct from (id in ('dualtek-2colour', 'anti-yellowing', 'dualtek-studio', 'matte', 'silicone', 'misttint', 'lens-grip'));
