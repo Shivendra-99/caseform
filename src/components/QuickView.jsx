@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore, stockFor } from "../store.jsx";
 import { PRODUCTS, inr, modelsText, optionsFor } from "../catalog.js";
+import ModelPicker from "./ModelPicker.jsx";
 import { lockScroll } from "../motion/smoothScroll.js";
 import { closeWithExit, useDragDismiss } from "../motion/sheet.js";
 import ProductGallery, { photosOf } from "./ProductGallery.jsx";
@@ -15,7 +16,7 @@ const round = { width: "44px", height: "44px", border: "1px solid rgba(0,0,0,0.1
 // shrinks back into it; on phones it's a bottom sheet you can drag down to dismiss.
 export default function QuickView({ id, finish: startFinish, origin, onClose }) {
   const p = PRODUCTS[id];
-  const { cart, devices, addForModels } = useStore();
+  const { cart, devices, setDevices, addForModels } = useStore();
   const ref = useRef(null);
   const grab = useRef(null);
   const titleId = useId();
@@ -104,15 +105,19 @@ export default function QuickView({ id, finish: startFinish, origin, onClose }) 
             </div>
           )}
 
-          <div style={{ padding: "14px 16px", borderRadius: "14px", background: "#F6F6F6", fontSize: "14px", lineHeight: "1.5", color: "#444444" }}>
-            {"For "}
-            <strong style={{ color: "#111111", fontWeight: "600" }}>{modelsText(devices)}</strong>
-            {n > 1 ? ". You'll get one for each model." : "."}
-            {soldOutFor.length > 0 && <span style={{ display: "block", marginTop: "4px", color: "#C4281C", fontWeight: "500" }}>{`Not available for ${modelsText(soldOutFor)}.`}</span>}
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "14px", lineHeight: "1.5", color: "#444444" }}>
+            <span id={`${titleId}-model`} style={{ fontWeight: "600", color: "#111111" }}>
+              iPhone model
+            </span>
+            <ModelPicker compact value={devices} onChange={setDevices} labelledBy={`${titleId}-model`} describedBy={`${titleId}-fit`} />
+            <span id={`${titleId}-fit`}>
+              {!n ? "Choose your model to add to bag." : n > 1 ? "You'll get one for each model." : ""}
+              {soldOutFor.length > 0 && <span style={{ display: "block", color: "#C4281C", fontWeight: "500" }}>{`Not available for ${modelsText(soldOutFor)}.`}</span>}
+            </span>
           </div>
 
-          <button type="button" className="btn-solid" onClick={add} disabled={!inStock} style={{ height: "56px", border: "0", borderRadius: "50px", background: inStock ? "#111111" : "#BBBBBB", color: "#FFFFFF", fontFamily: "inherit", fontSize: "16px", fontWeight: "600", cursor: inStock ? "pointer" : "default" }}>
-            {added ? "Added to bag ✓" : inStock ? `Add to bag · ${inr(p.price * inStock)}` : "Sold out"}
+          <button type="button" className="btn-solid" onClick={n ? add : () => ref.current.querySelector(".model-select").click()} disabled={n > 0 && !inStock} style={{ height: "56px", border: "0", borderRadius: "50px", background: inStock || !n ? "#111111" : "#BBBBBB", color: "#FFFFFF", fontFamily: "inherit", fontSize: "16px", fontWeight: "600", cursor: inStock || !n ? "pointer" : "default" }}>
+            {added ? "Added to bag ✓" : !n ? "Choose your iPhone model" : inStock ? `Add to bag · ${inr(p.price * inStock)}` : "Sold out"}
           </button>
           <span role="status" className="sr-only">
             {added ? `Added ${p.name} to bag` : ""}

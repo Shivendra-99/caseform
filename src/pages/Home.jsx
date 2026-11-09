@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "../store.jsx";
-import { PRODUCTS, BEST_SELLERS, modelsText } from "../catalog.js";
+import { PRODUCTS, BEST_SELLERS, fitsText } from "../catalog.js";
 import ModelPicker from "../components/ModelPicker.jsx";
 import HeroCarousel from "../components/HeroCarousel.jsx";
 import ProductCard from "../components/ProductCard.jsx";
@@ -24,7 +24,7 @@ const pill = (on, idle) => ({ pressed: on ? "true" : "false", bg: on ? "#000000"
 export default function Home() {
   const { devices, setDevices } = useStore();
   const many = devices.length > 1;
-  const allFits = modelsText(devices);
+  const allFits = fitsText(devices);
   const [cat, setCat] = useState("all");
 
 
@@ -37,27 +37,6 @@ export default function Home() {
       {/* 3. HERO */}
       <HeroCarousel />
 
-      {/* 4. QUICK MODEL SELECTOR */}
-      <section id="models" aria-label="Shop by iPhone model" style={{ background: "#FFFFFF", borderBottom: "1px solid #EEEEEE" }}>
-        <div className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "28px 40px", display: "flex", alignItems: "center", gap: "16px 32px", flexWrap: "wrap" }}>
-          <span id="model-label" style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace", fontSize: "12px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#666666", flexShrink: "0" }}>
-            Shop by model
-          </span>
-          <div className="model-pick" style={{ flex: "0 1 360px", minWidth: "260px" }}>
-            <ModelPicker value={devices} onChange={setDevices} labelledBy="model-label" describedBy="model-help" />
-          </div>
-          <p id="model-help" style={{ margin: "0", flex: "1 1 300px", maxWidth: "520px", fontSize: "13px", lineHeight: "1.5", color: "#666666" }}>
-            Everything below is cut for the models you pick. Buying for the family? Tick several. Not sure which iPhone you have? Settings › General › About › Model Name.
-          </p>
-          <Link to="/collection" className="model-all" style={{ display: "inline-flex", alignItems: "center", gap: "8px", height: "44px", marginLeft: "auto", fontSize: "14px", fontWeight: "600", color: "#222222", whiteSpace: "nowrap" }}>
-            Shop all that fit
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
-          </Link>
-        </div>
-      </section>
-
       {/* 7. BEST SELLERS GRID */}
       <section id="bestsellers" style={{ background: "#FFFFFF" }}>
         <div className="wrap" style={{ maxWidth: "1420px", margin: "0 auto", padding: "112px 40px 120px", display: "flex", flexDirection: "column", gap: "40px" }}>
@@ -66,12 +45,20 @@ export default function Home() {
               <h2 className="hx" style={{ margin: "0", fontSize: "56px", lineHeight: "1.05", fontWeight: "800", letterSpacing: "-0.03em", color: "#222222" }}>
                 Best Sellers
               </h2>
-              <p style={{ margin: "0", color: "#666666" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px 14px", flexWrap: "wrap" }}>
+                <span id="bs-model-label" style={{ fontSize: "14px", fontWeight: "600", color: "#222222" }}>
+                  Your iPhone
+                </span>
+                <div style={{ flex: "0 1 340px", minWidth: "240px" }}>
+                  <ModelPicker compact value={devices} onChange={setDevices} labelledBy="bs-model-label" describedBy="bs-model-help" />
+                </div>
+              </div>
+              <p id="bs-model-help" style={{ margin: "0", color: "#666666" }}>
                 {"Showing fits for "}
                 <strong style={{ color: "#222222", fontWeight: "600" }}>
                   {allFits}
                 </strong>
-                {". Add any cover and the glass is 50% off."}
+                {devices.length ? ". Add any cover and the glass is 50% off." : ". Choose yours above to add to bag. Add any cover and the glass is 50% off."}
                 {many && " Adding an item puts one in your bag for each model."}
               </p>
             </div>

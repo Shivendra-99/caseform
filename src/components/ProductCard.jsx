@@ -27,7 +27,8 @@ export function Offer({ p, style }) {
 
 // The one product card used across the shop: photo on soft grey, details on a white panel.
 // Hovering cycles through all the product's photos; a swipe does the same on touch screens.
-// Clicking the photo opens Quick view. Adding puts one in the bag per selected iPhone model.
+// Clicking the photo opens Quick view. Adding puts one in the bag per selected iPhone model;
+// with no model chosen yet, + opens Quick view so the shopper picks one.
 export default function ProductCard({ id }) {
   const p = PRODUCTS[id];
   const { cart, devices, addForModels } = useStore();
@@ -38,7 +39,7 @@ export default function ProductCard({ id }) {
   const variant = opts?.[isGlass ? p.def : 0].name;
   // Selected iPhone models this product has run out for (only stock-tracked products ever do).
   const soldOutFor = devices.filter((d) => stockFor(id, d, variant, cart) < 1);
-  const soldOut = soldOutFor.length === devices.length;
+  const soldOut = devices.length > 0 && soldOutFor.length === devices.length;
   const url = p.kind === "case" ? `/product?id=${id}` : null;
   const badge = BADGES[p.badge];
   const [shown, setShown] = useState(0);
@@ -65,6 +66,7 @@ export default function ProductCard({ id }) {
     setShown(0);
   };
   const add = () => {
+    if (!devices.length) return setQuick(true); // "All iPhone models": pick one in Quick view first
     addForModels(id, 1, variant);
     navigator.vibrate?.(10); // a light tick on the commit, same frame as the visual change
     setAdded(true);
@@ -131,7 +133,7 @@ export default function ProductCard({ id }) {
               p.name
             )}
           </h3>
-          <button type="button" className="pcard-add" data-added={added || undefined} disabled={soldOut} aria-label={soldOut ? `${p.name} isn't available for ${modelsText(devices)}` : `Add ${p.name}${variant ? `, ${variant}` : ""} to bag${forModels}`} onClick={add} style={{ width: "44px", height: "44px", flexShrink: "0", border: "0", borderRadius: "50px", background: added ? "#111111" : "transparent", color: added ? "#FFFFFF" : soldOut ? "#BBBBBB" : "#111111", display: "flex", alignItems: "center", justifyContent: "center", cursor: soldOut ? "default" : "pointer", transition: "background-color 150ms ease, color 150ms ease, scale 200ms cubic-bezier(0.2, 0.8, 0.2, 1)" }}>
+          <button type="button" className="pcard-add" data-added={added || undefined} disabled={soldOut} aria-label={!devices.length ? `Choose your iPhone model for ${p.name}` : soldOut ? `${p.name} isn't available for ${modelsText(devices)}` : `Add ${p.name}${variant ? `, ${variant}` : ""} to bag${forModels}`} onClick={add} style={{ width: "44px", height: "44px", flexShrink: "0", border: "0", borderRadius: "50px", background: added ? "#111111" : "transparent", color: added ? "#FFFFFF" : soldOut ? "#BBBBBB" : "#111111", display: "flex", alignItems: "center", justifyContent: "center", cursor: soldOut ? "default" : "pointer", transition: "background-color 150ms ease, color 150ms ease, scale 200ms cubic-bezier(0.2, 0.8, 0.2, 1)" }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               {added ? (
                 <path d="M5 12.5l4.5 4.5L19 7.5" />

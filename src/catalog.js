@@ -33,6 +33,8 @@ groupModels();
 
 // ["iPhone 16 Pro", "iPhone 15 Series"] -> "iPhone 16 Pro and iPhone 15 Series"
 export const modelsText = (list) => new Intl.ListFormat("en", { type: "conjunction" }).format(list);
+// The shopper's chosen models; none chosen means they're browsing every model.
+export const fitsText = (list) => (list.length ? modelsText(list) : "all iPhone models");
 
 // Fills used to draw a cover that has no photo yet; a product's `def` picks one.
 export const COLORS = [
@@ -58,13 +60,13 @@ const img = (file) => ({ img: `/products/${file}.jpg` });
 
 // Colours and full feature lists from "Information For Website.xlsx" (products.colors / products.details).
 const info = {
-  dualtek: { colors: ["White", "Black"], details: ["Ultra protective, 20 ft drop test certified", "Patented design with built-in bumpers for extreme corner impact protection", "Designed with shock-absorbing materials", "Ergonomic grip support"] },
-  antiYellowing: { colors: ["Clear", "Black", "Blue"], details: ["Ultra-clear case, crafted using anti-yellowing materials", "Lightweight and slim design", "Easy to snap on and off", "Functional metal buttons"] },
-  studio: { colors: ["Orange", "Black", "Blue", "Burgundy"], details: ["Ultra protective, 20 ft drop test certified", "Stylish design with shock-absorbing materials", "Translucent, frosted anti-fingerprint material", "Built-in bumpers for extreme corner impact protection", "Raised lip protects screen and camera lens from drops and bumps", "Scratch-resistant and anti-slip grip"] },
-  matte: { colors: ["Black"], details: ["Minimal, sleek design", "Effortlessly slides into pockets", "Precision fit – simple to put on and remove", "Raised edges protect screen from scratches and scuffs", "Tactile buttons for seamless control"] },
-  silicone: { colors: ["Beige", "Black", "Blue"], details: ["Premium silicone exterior – soft, smooth and comfortable to hold", "Soft microfiber lining helps protect your phone from scratches, dust and daily wear", "Slim and lightweight – adds protection without making your phone bulky"] },
-  misttint: { colors: ["Orange", "Black", "Blue", "Burgundy"], details: ["Made entirely of PC material – lightweight and slim", "Metal camera ring and metal buttons for a premium, high-end feel", "Gradient-coloured backplate with a matte, skin-friendly soft-touch finish"] },
-  lensGrip: { colors: ["Blue", "Clear"], details: ["Made of PC and TPU; the clear version has an anti-fingerprint coating on the back to resist smudges", "Built-in lens stand works as a phone kickstand or a handheld selfie grip", "Comes with a lens film to protect the camera lens", "HD tempered glass", "Drop and scratch protection", "Fingerprint and smudge resistant"] },
+  dualtek: { colors: ["White", "Black"], details: ["Ultra protection. Certified 20 ft. drop tested", "Built-in corner bumpers for extra protection", "Shock-absorbing materials for better impact protection", "Comfortable design for an easy and secure grip"] },
+  antiYellowing: { colors: ["Clear", "Black", "Blue"], details: ["Clear design with anti-yellowing protection", "Slim and lightweight", "Easy to put on and remove", "Easy-to-press metal buttons"] },
+  studio: { colors: ["Orange", "Black", "Blue", "Burgundy"], details: ["Ultra protection. Certified 20 ft. drop tested", "Stylish matte finish that resists fingerprints", "Built-in corner bumpers for extra impact protection", "360° adjustable kickstand with a secure, anti-slip grip"] },
+  matte: { colors: ["Black"], details: ["Slim and lightweight design", "Fits easily into your pocket", "Raised edges protect the screen from scratches and scuffs", "Tactile buttons for easy and smooth control"] },
+  silicone: { colors: ["Beige", "Black", "Blue"], details: ["Soft and smooth silicone finish for a comfortable grip", "Soft microfiber lining protects against scratches and dust", "Slim and lightweight design without adding bulk"] },
+  misttint: { colors: ["Orange", "Black", "Blue", "Burgundy"], details: ["Slim and lightweight PC body", "Premium metal camera ring and buttons", "Stylish gradient back with a smooth matte finish"] },
+  lensGrip: { colors: ["Blue", "Clear"], details: ["Premium PC + TPU construction for strong everyday protection", "Built-in lens stand for hands-free viewing and easy selfies", "HD tempered glass for crystal-clear protection", "Scratch-resistant and anti-fingerprint finish to keep your case looking clean"] },
 };
 
 // kind: "case" | "combo" (covers), "glass" (screen glass, 50% off with any cover), "lens".

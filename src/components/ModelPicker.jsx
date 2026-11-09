@@ -1,11 +1,12 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { MODEL_SERIES, modelsText } from "../catalog.js";
+import { MODEL_SERIES, fitsText } from "../catalog.js";
 
 const mono = { fontFamily: "'IBM Plex Mono', ui-monospace, monospace" };
 const icon = { position: "absolute", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" };
+const ALL = "All iPhone models";
 
 // The one iPhone model picker used on every page: search plus multi-select, grouped by series.
-// value: selected models; onChange gets the new list. The last ticked model can't be unticked.
+// value: selected models; onChange gets the new list. An empty list means "All iPhone models".
 // labelledBy / describedBy: ids of the visible label and helper text placed next to it.
 // inline: show the search + list in place (no trigger button), e.g. as a menu drawer sub-view;
 // its Done button calls onDone. compact: a 44px form-field trigger for dense layouts (Product buy box).
@@ -23,7 +24,7 @@ export default function ModelPicker({ value, onChange, labelledBy, describedBy, 
   // "15 pro" matches "iPhone 15 Pro"; every word must appear.
   const terms = query.toLowerCase().replace(/iphone/g, " ").split(/\s+/).filter(Boolean);
   const groups = MODEL_SERIES.map((g) => ({ ...g, models: g.models.filter((m) => terms.every((t) => m.toLowerCase().includes(t))) })).filter((g) => g.models.length);
-  const shown = groups.flatMap((g) => g.models);
+  const shown = [...(terms.length ? [] : [ALL]), ...groups.flatMap((g) => g.models)];
   const optId = (i) => `${id}-o${i}`;
 
   const close = (refocus) => {
@@ -33,10 +34,7 @@ export default function ModelPicker({ value, onChange, labelledBy, describedBy, 
     if (inline) onDone?.();
     else if (refocus) buttonRef.current.focus();
   };
-  const toggle = (m) => {
-    if (!value.includes(m)) onChange([...value, m]);
-    else if (value.length > 1) onChange(value.filter((x) => x !== m));
-  };
+  const toggle = (m) => onChange(m === ALL ? [] : value.includes(m) ? value.filter((x) => x !== m) : [...value, m]);
 
   // Open: focus the search box, or on touch screens the panel, so the keyboard doesn't cover the list.
   // A press outside closes it.
@@ -68,12 +66,29 @@ export default function ModelPicker({ value, onChange, labelledBy, describedBy, 
     }
   };
 
+  const option = (m) => {
+    const i = shown.indexOf(m);
+    const on = m === ALL ? !value.length : value.includes(m);
+    return (
+      <div key={m} id={optId(i)} role="option" aria-selected={on} onClick={() => toggle(m)} onMouseMove={() => setActive(i)} style={{ display: "flex", alignItems: "center", gap: "12px", minHeight: "44px", padding: "0 12px", borderRadius: "12px", background: i === active ? "#F4F4F4" : "transparent", fontSize: "15px", fontWeight: on ? "700" : "500", color: "#222222", cursor: "pointer" }}>
+        <span aria-hidden="true" style={{ width: "20px", height: "20px", flexShrink: "0", borderRadius: "6px", border: "1.5px solid #222222", background: on ? "#000000" : "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {on && (
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12.5l4.5 4.5L19 7.5" />
+            </svg>
+          )}
+        </span>
+        {m}
+      </div>
+    );
+  };
+
   return (
     <div ref={rootRef} className="se-root se-font" style={{ position: "relative", width: "100%" }} onBlur={(e) => !inline && open && e.relatedTarget && !rootRef.current.contains(e.relatedTarget) && close(false)}>
       {!inline && (
       <>
       <span id={`${id}-all`} hidden>
-        {modelsText(value)}
+        {fitsText(value)}
       </span>
       <button ref={buttonRef} type="button" className={compact ? "model-select is-compact" : "model-select"} aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? `${id}-panel` : undefined} aria-labelledby={`${labelledBy} ${id}-all`} aria-describedby={describedBy} onClick={() => (open ? close(true) : setOpen(true))} style={{ position: "relative", display: "block", width: "100%", textAlign: "left", cursor: "pointer", background: "#FFFFFF", color: "#222222", fontFamily: "inherit", ...(compact ? { height: "44px", padding: "0 40px 0 42px", borderRadius: "12px", border: "1px solid #CFCFCF", fontSize: "15px", fontWeight: "500" } : { height: "56px", padding: "0 52px 0 54px", borderRadius: "50px", border: "1.5px solid #222222", fontSize: "16px", fontWeight: "700" }) }}>
         <svg width={compact ? 18 : 20} height={compact ? 18 : 20} viewBox="0 0 24 24" fill="none" stroke="#222222" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ ...icon, left: compact ? "14px" : "22px" }}>
@@ -81,7 +96,7 @@ export default function ModelPicker({ value, onChange, labelledBy, describedBy, 
           <path d="M10.5 5.5h3" />
         </svg>
         <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {value[0]}
+          {value[0] ?? ALL}
           {value.length > 1 && <span style={{ color: "#666666", fontWeight: compact ? "400" : "600" }}>{` +${value.length - 1} more`}</span>}
         </span>
         <svg width={compact ? 16 : 18} height={compact ? 16 : 18} viewBox="0 0 24 24" fill="none" stroke="#222222" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ ...icon, right: compact ? "14px" : "22px", transform: `translateY(-50%) rotate(${open ? 180 : 0}deg)`, transition: "transform 150ms ease-out" }}>
@@ -102,27 +117,13 @@ export default function ModelPicker({ value, onChange, labelledBy, describedBy, 
           </div>
           {/* mousedown is cancelled so clicking an option keeps focus in the search box */}
           <div id={`${id}-list`} role="listbox" aria-multiselectable="true" aria-label="iPhone models" data-lenis-prevent onMouseDown={(e) => e.preventDefault()} style={{ maxHeight: inline ? "none" : "300px", overflowY: "auto", padding: "0 6px 8px" }}>
+            {shown[0] === ALL && <div style={{ padding: "4px 0", borderBottom: "1px solid #EEEEEE" }}>{option(ALL)}</div>}
             {groups.map((g) => (
               <div key={g.name} role="group" aria-labelledby={`${id}-g${g.gen}`}>
                 <div id={`${id}-g${g.gen}`} style={{ ...mono, padding: "10px 12px 4px", fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#666666" }}>
                   {g.name}
                 </div>
-                {g.models.map((m) => {
-                  const i = shown.indexOf(m);
-                  const on = value.includes(m);
-                  return (
-                    <div key={m} id={optId(i)} role="option" aria-selected={on} onClick={() => toggle(m)} onMouseMove={() => setActive(i)} style={{ display: "flex", alignItems: "center", gap: "12px", minHeight: "44px", padding: "0 12px", borderRadius: "12px", background: i === active ? "#F4F4F4" : "transparent", fontSize: "15px", fontWeight: on ? "700" : "500", color: "#222222", cursor: "pointer" }}>
-                      <span aria-hidden="true" style={{ width: "20px", height: "20px", flexShrink: "0", borderRadius: "6px", border: "1.5px solid #222222", background: on ? "#000000" : "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        {on && (
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M5 12.5l4.5 4.5L19 7.5" />
-                          </svg>
-                        )}
-                      </span>
-                      {m}
-                    </div>
-                  );
-                })}
+                {g.models.map(option)}
               </div>
             ))}
             {!shown.length && (
@@ -133,7 +134,7 @@ export default function ModelPicker({ value, onChange, labelledBy, describedBy, 
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", padding: "12px 12px 12px 18px", borderTop: "1px solid #EEEEEE" }}>
             <span aria-live="polite" style={{ fontSize: "13px", color: "#666666" }}>
-              {value.length === 1 ? "Tick more to shop for several iPhones" : `${value.length} models selected`}
+              {!value.length ? "Tick yours to add to bag" : value.length === 1 ? "Tick more to shop for several iPhones" : `${value.length} models selected`}
             </span>
             <button type="button" className="btn-solid" onClick={() => close(true)} style={{ height: "40px", padding: "0 20px", border: "0", borderRadius: "50px", background: "#000000", color: "#FFFFFF", fontFamily: "inherit", fontSize: "14px", fontWeight: "700", cursor: "pointer", flexShrink: "0" }}>
               Done

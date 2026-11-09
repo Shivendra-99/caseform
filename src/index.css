@@ -78,8 +78,6 @@
   .se-root .fan-outer { display: none; }
 }
 @media (max-width: 560px) {
-  .se-root .model-pick { flex: 1 1 100% !important; }
-  .se-root .model-all { margin-left: 0 !important; }
   .se-root .wrap { padding-left: 16px !important; padding-right: 16px !important; }
   .se-root .g4, .se-root .spec-row, .se-root .trust { grid-template-columns: minmax(0, 1fr) !important; }
   .se-root .hx { font-size: 34px !important; }

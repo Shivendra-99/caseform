@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { useStore } from "../store.jsx";
-import { PRODUCTS, modelsText } from "../catalog.js";
+import { PRODUCTS, fitsText } from "../catalog.js";
 import ProductCard from "../components/ProductCard.jsx";
 import ModelPicker from "../components/ModelPicker.jsx";
 import Promises from "../components/Promises.jsx";
@@ -89,7 +89,7 @@ export default function Collection() {
             </h1>
             <p id="col-help" style={{ margin: "0", maxWidth: "560px", fontSize: "15px", lineHeight: "1.6", color: "#555555" }}>
               {"Cut for "}
-              <strong style={{ color: "#111111", fontWeight: "600" }}>{modelsText(devices)}</strong>
+              <strong style={{ color: "#111111", fontWeight: "600" }}>{fitsText(devices)}</strong>
               {". Add any cover and the 9H glass is 50% off."}
             </p>
           </div>

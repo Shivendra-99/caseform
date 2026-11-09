@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { MODELS, MODEL_SERIES, PRODUCTS, isRetired, optionsFor, priceLines, stockLeft } from "./catalog.js";
+import { MODELS, PRODUCTS, isRetired, optionsFor, priceLines, stockLeft } from "./catalog.js";
 
 export { PRODUCTS, FREE_SHIPPING, inr } from "./catalog.js";
 
@@ -27,7 +27,7 @@ const save = (key, value) => {
 // A saved bag is dropped if any line names a retired product or an option it no longer comes in.
 const validVariant = (i) => optionsFor(PRODUCTS[i.id])?.some((o) => o.name === i.variant) ?? i.variant == null;
 const selling = (m) => MODELS.includes(m) && !isRetired(m);
-const validDevices = (v) => Array.isArray(v) && v.length > 0 && v.every(selling);
+const validDevices = (v) => Array.isArray(v) && v.every(selling);
 const validCart = (v) => Array.isArray(v) && v.every((i) => PRODUCTS[i?.id] && Number.isInteger(i.qty) && i.qty > 0 && validVariant(i));
 
 // Pieces of one product / model / finish still available to this shopper: stock left minus what's
@@ -42,18 +42,16 @@ export function stockFor(id, device, variant, cart = []) {
 const StoreContext = createContext(null);
 
 export function StoreProvider({ children }) {
-  // The iPhone models the shopper is buying for: at least one, kept in MODELS order.
-  const [devices, setDevicesState] = useState(() => load(DEVICES_KEY, null, validDevices) ?? [load(OLD_DEVICE_KEY, MODEL_SERIES[0].models[0], selling)]);
+  // The iPhone models the shopper is buying for, kept in MODELS order. Empty = "All iPhone models":
+  // browsing only, a model has to be chosen before anything can go in the bag.
+  const [devices, setDevicesState] = useState(() => load(DEVICES_KEY, null, validDevices) ?? [load(OLD_DEVICE_KEY, null, selling)].filter(Boolean));
   const [cart, setCart] = useState(() => load(CART_KEY, [], validCart));
-  const device = devices[0];
+  const device = devices[0] ?? cart[0]?.device;
 
   useEffect(() => save(CART_KEY, cart), [cart]);
   useEffect(() => save(DEVICES_KEY, devices), [devices]);
 
-  const setDevices = (list) => {
-    const next = MODELS.filter((m) => list.includes(m) && selling(m));
-    if (next.length) setDevicesState(next);
-  };
+  const setDevices = (list) => setDevicesState(MODELS.filter((m) => list.includes(m) && selling(m)));
 
   // Never adds more than are left (the server re-checks and reserves at checkout).
   const addToCart = (id, qty = 1, forDevice = device, variant) =>

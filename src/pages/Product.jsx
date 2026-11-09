@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useStore, stockFor } from "../store.jsx";
-import { MODELS, MODEL_CODES, COLORS, FINISHES, PRODUCTS, inr, modelsText, optionsFor } from "../catalog.js";
+import { MODELS, MODEL_CODES, COLORS, FINISHES, PRODUCTS, inr, fitsText, modelsText, optionsFor } from "../catalog.js";
 import ProductArt from "../components/ProductArt.jsx";
 import ProductGallery, { photosOf } from "../components/ProductGallery.jsx";
 import ModelPicker from "../components/ModelPicker.jsx";
@@ -39,7 +39,7 @@ function Product({ id }) {
   const related = COVERS.filter((x) => x !== id && PRODUCTS[x].img).slice(0, 4);
   // Several models selected = one of each item per model.
   const n = devices.length;
-  const allFits = modelsText(devices);
+  const allFits = fitsText(devices);
   const [photo, setPhoto] = useState(0);
   const colors = optionsFor(cover); // null for covers sold in one unnamed colour
   const [ci, setCi] = useState(0);
@@ -58,7 +58,13 @@ function Product({ id }) {
   const qn = Math.max(1, Math.min(qty, maxQty)); // the quantity shown and added
 
   const total = (cover.price + (glassOn ? GLASS_WITH_CASE : 0)) * qn * inStock;
-  const setPrice = (cover.price + GLASS_WITH_CASE + LENS.price) * n;
+  const setPrice = (cover.price + GLASS_WITH_CASE + LENS.price) * (n || 1);
+  // "All iPhone models" is selected: the buy buttons open the model picker instead.
+  const chooseModel = () => {
+    const b = document.querySelector('[aria-labelledby^="pp-model-label"]');
+    b?.scrollIntoView({ block: "center" });
+    b?.click();
+  };
   const flash = (what) => {
     setAdded(what);
     setTimeout(() => setAdded((x) => (x === what ? null : x)), 1800);
@@ -144,7 +150,7 @@ function Product({ id }) {
               </span>
               <ModelPicker compact value={devices} onChange={setDevices} labelledBy="pp-model-label" describedBy="pp-model-help" />
               <span id="pp-model-help" style={{ fontSize: "13px", lineHeight: "1.5", color: "#666666" }}>
-                {n > 1 ? `You'll get one for each: ${allFits}.` : "Not sure which? Settings › General › About › Model Name. Buying for more than one? Tick several."}
+                {n > 1 ? `You'll get one for each: ${allFits}.` : !n ? "Choose your model to add to bag. Not sure which? Settings › General › About › Model Name." : "Not sure which? Settings › General › About › Model Name. Buying for more than one? Tick several."}
               </span>
             </div>
 
@@ -191,11 +197,11 @@ function Product({ id }) {
                     </svg>
                   </button>
                 </div>
-                <button type="button" className="btn-solid" disabled={!inStock} onClick={() => (addCaseAndGlass(), flash("bag"))} style={{ flex: "1 1 auto", height: "48px", padding: "0 18px", border: "0", borderRadius: "50px", background: inStock ? "#111111" : "#BBBBBB", color: "#FFFFFF", fontFamily: "inherit", fontSize: "15px", fontWeight: "600", cursor: inStock ? "pointer" : "default" }}>
-                  {added === "bag" ? "Added to bag ✓" : inStock ? `Add to bag · ${inr(total)}` : "Sold out"}
+                <button type="button" className="btn-solid" disabled={n > 0 && !inStock} onClick={() => (n ? (addCaseAndGlass(), flash("bag")) : chooseModel())} style={{ flex: "1 1 auto", height: "48px", padding: "0 18px", border: "0", borderRadius: "50px", background: inStock || !n ? "#111111" : "#BBBBBB", color: "#FFFFFF", fontFamily: "inherit", fontSize: "15px", fontWeight: "600", cursor: inStock || !n ? "pointer" : "default" }}>
+                  {added === "bag" ? "Added to bag ✓" : !n ? "Choose your iPhone model" : inStock ? `Add to bag · ${inr(total)}` : "Sold out"}
                 </button>
               </div>
-              <button type="button" className="btn-ghost" disabled={!inStock} onClick={() => (addCaseAndGlass(), navigate("/cart"))} style={{ height: "48px", border: "1px solid #111111", borderRadius: "50px", background: "#FFFFFF", color: "#111111", fontFamily: "inherit", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>
+              <button type="button" className="btn-ghost" disabled={n > 0 && !inStock} onClick={() => (n ? (addCaseAndGlass(), navigate("/cart")) : chooseModel())} style={{ height: "48px", border: "1px solid #111111", borderRadius: "50px", background: "#FFFFFF", color: "#111111", fontFamily: "inherit", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>
                 Buy now
               </button>
               <span role="status" className="sr-only">
@@ -328,11 +334,11 @@ function Product({ id }) {
               <span style={{ fontSize: "14px", color: "#666666" }}>{n > 1 ? `${3 * n} items · one set per model` : "3 items"}</span>
               <span style={{ display: "flex", alignItems: "baseline", gap: "10px", flexWrap: "wrap" }}>
                 <span style={{ fontSize: "28px", fontWeight: "600", color: "#111111" }}>{inr(setPrice)}</span>
-                <s style={{ fontSize: "15px", color: "#8A8A8A" }}>{inr((cover.price + GLASS.price + LENS.price) * n)}</s>
+                <s style={{ fontSize: "15px", color: "#8A8A8A" }}>{inr((cover.price + GLASS.price + LENS.price) * (n || 1))}</s>
               </span>
-              <span style={{ fontSize: "14px", color: "#1A7F4B", fontWeight: "500" }}>{`You save ${inr((GLASS.price - GLASS_WITH_CASE) * n)}`}</span>
-              <button type="button" className="btn-solid" onClick={addSet} style={{ height: "52px", marginTop: "6px", border: "0", borderRadius: "50px", background: "#111111", color: "#FFFFFF", fontFamily: "inherit", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>
-                {added === "set" ? "Added ✓" : "Add all to bag"}
+              <span style={{ fontSize: "14px", color: "#1A7F4B", fontWeight: "500" }}>{`You save ${inr((GLASS.price - GLASS_WITH_CASE) * (n || 1))}`}</span>
+              <button type="button" className="btn-solid" onClick={n ? addSet : chooseModel} style={{ height: "52px", marginTop: "6px", border: "0", borderRadius: "50px", background: "#111111", color: "#FFFFFF", fontFamily: "inherit", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>
+                {added === "set" ? "Added ✓" : n ? "Add all to bag" : "Choose your iPhone model"}
               </button>
             </div>
           </div>

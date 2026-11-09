@@ -8,7 +8,7 @@ import SocialLinks from "./SocialLinks.jsx";
 
 // Primary nav; links point at homepage sections. `active` marks the link for the current page.
 const NAV = [
-  { label: "Select iPhone Model", to: "/#models", caret: true },
+  { label: "Select iPhone Model", to: "/collection", caret: true },
   { label: "MagSafe Covers", to: "/#lineup", active: "/product" },
   { label: "Tempered Glass", to: "/#glass" },
   { label: "Camera Lens Glass", to: "/#lineup" },
@@ -184,7 +184,7 @@ export default function StoreHeader() {
                   <button type="button" onClick={() => setView("models")} className="menu-row" style={{ width: "100%", border: "0", background: "transparent", textAlign: "left", cursor: "pointer" }}>
                     <span>Your iPhone</span>
                     <span style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: "0" }}>
-                      <span className="menu-value">{devices.length > 1 ? `${devices.length} models` : devices[0]}</span>
+                      <span className="menu-value">{devices.length > 1 ? `${devices.length} models` : devices[0] ?? "All models"}</span>
                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: "0" }}>
                         <path d="M9 6l6 6-6 6" />
                       </svg>
