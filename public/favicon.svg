@@ -1,13 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 132 132" role="img" aria-label="SNAP EDGE">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 132 132" role="img" aria-label="SNAPEDGE">
   <rect width="132" height="132" rx="30" fill="#141414"/>
-  <svg x="18" y="40.5" width="96" height="51" viewBox="-12 -4 128 68">
-    <g transform="skewX(-12)" fill="#B0915E">
-      <polygon points="-6,0 6,0 6,12 -6,12"/>
-      <path d="M62 6H26A10 10 0 0 0 16 16V20A10 10 0 0 0 26 30H46A10 10 0 0 1 56 40V44A10 10 0 0 1 46 54H4" fill="none" stroke="#B0915E" stroke-width="12"/>
-      <polygon points="70,0 82,0 82,60 70,60"/>
-      <polygon points="70,0 112,0 112,12 70,12"/>
-      <polygon points="70,24 104,24 104,36 70,36"/>
-      <polygon points="70,48 112,48 112,60 70,60"/>
-    </g>
+  <svg x="14" y="41.5" width="104" height="48.2" viewBox="6 -2 82 38">
+    <path fill="#B0915E" d="M22 0H50L45 6.5H25.5Q22 6.5 22 10V11C22 13 29 14 36 14.8C42 15.6 44 18 44 21.5V27L37 34H10L14.5 27H37V22.5C35 21 31 20.3 25 19.6C19 18.8 16 16 15.5 13L15.3 11.5H8L11.5 7H15.5C15.5 3 18 0 22 0ZM52 3H86L81.5 9H47.5ZM55.5 15H72L67.5 20.8H56L52.3 26.3H43V23H49.7ZM48 27H80L75.5 34H43.5Z"/>
   </svg>
 </svg>
