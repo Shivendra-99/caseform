@@ -1,45 +1,40 @@
-// SnapEdge logo: the SE mark beside the SNAP EDGE wordmark, with the tagline under the wordmark.
-// Drawn in currentColor on a transparent background, so it blends with whatever it sits on.
-// The wordmark half carries the "wordmark" class, which the header hides on small screens.
+// SnapEdge logo: the SE mark beside the SNAPEDGE wordmark, with the tagline under the wordmark.
+// Glyphs are traced from the brand artwork. Drawn in currentColor on a transparent background,
+// so it blends with whatever it sits on. The wordmark half carries the "wordmark" class, which
+// the header hides on small screens.
+export const MARK_PATH =
+  "M22 0H50L45 6.5H25.5Q22 6.5 22 10V11C22 13 29 14 36 14.8C42 15.6 44 18 44 21.5V27L37 34H10L14.5 27H37V22.5C35 21 31 20.3 25 19.6C19 18.8 16 16 15.5 13L15.3 11.5H8L11.5 7H15.5C15.5 3 18 0 22 0Z" +
+  "M52 3H86L81.5 9H47.5Z" +
+  "M55.5 15H72L67.5 20.8H56L52.3 26.3H43V23H49.7Z" +
+  "M48 27H80L75.5 34H43.5Z";
+
+const WORD_PATH =
+  "M7 0H30V4.5H8V8.5H28Q32 8.5 32 12.5V18Q32 22 28 22H3V17.5H27V13H7Q3 13 3 9V4Q3 0 7 0Z" +
+  "M38 0H43.5L62 15.5V0H67V22H61.5L43 6.5V22H38Z" +
+  "M84 0H90L104 22H96.5L85.5 6.5L76 22H69.5ZM84 13.5H94V16H84Z" +
+  "M108 0H131.5Q135 0 135 3.5V10.5Q135 14 131.5 14H111.5V22H106V10.5H129V4H108Z" +
+  "M142 0H168L165.5 4H146ZM141 3L146.5 8.5H163.5L160 13H146.5V17.5H168V22H141Z" +
+  "M175.5 0H198.5L202 3.5V17Q202 22 197 22H175V3.5L180 8.5V17.5H196V4H179Z" +
+  "M214 0H237V4H214.5V17.5H231V13H222.5V8.5H237V22H214Q209 22 209 17V5Q209 0 214 0Z" +
+  "M244 0H270L267.5 4H248ZM243 3L248.5 8.5H265.5L262 13H248.5V17.5H270V22H243Z";
+
+export function Mark({ height = 40, style }) {
+  return (
+    <svg width={(height * 82) / 38} height={height} viewBox="6 -2 82 38" aria-hidden="true" style={{ display: "block", flexShrink: "0", ...style }}>
+      <path d={MARK_PATH} fill="currentColor" />
+    </svg>
+  );
+}
+
 export default function Logo({ height = 40 }) {
   const word = height * 0.85;
   return (
     <span style={{ display: "flex", alignItems: "center", gap: `${Math.round(height * 0.3)}px` }}>
-      <svg width={(height * 128) / 68} height={height} viewBox="-12 -4 128 68" aria-hidden="true" style={{ display: "block", flexShrink: "0" }}>
-        <g transform="skewX(-12)" fill="currentColor">
-          <polygon points="-6,0 6,0 6,12 -6,12" />
-          <path d="M62 6H26A10 10 0 0 0 16 16V20A10 10 0 0 0 26 30H46A10 10 0 0 1 56 40V44A10 10 0 0 1 46 54H4" fill="none" stroke="currentColor" strokeWidth="12" />
-          <polygon points="70,0 82,0 82,60 70,60" />
-          <polygon points="70,0 112,0 112,12 70,12" />
-          <polygon points="70,24 104,24 104,36 70,36" />
-          <polygon points="70,48 112,48 112,60 70,60" />
-        </g>
-      </svg>
-      <svg className="wordmark" width={word * 5.94} height={word} viewBox="0 0 594 100" aria-hidden="true" style={{ flexShrink: "0" }}>
-        <g transform="translate(0 -38)" fill="currentColor" stroke="currentColor">
-          <path d="M62 44H16A12 12 0 0 0 4 56V58A12 12 0 0 0 16 70H46A12 12 0 0 1 58 82V84A12 12 0 0 1 46 96H0" fill="none" strokeWidth="8" />
-          <g stroke="none">
-            <polygon points="76,40 84,40 84,100 76,100" />
-            <polygon points="130,40 138,40 138,100 130,100" />
-            <polygon points="76,40 87,40 138,100 127,100" />
-            <polygon points="146,100 174.5,40 185.5,40 214,100 203,100 180,51.58 157,100" />
-            <polygon points="222,40 230,40 230,100 222,100" />
-            <polygon points="318,40 326,40 326,100 318,100" />
-            <polygon points="318,40 370,40 370,48 318,48" />
-            <polygon points="318,66 364,66 364,74 318,74" />
-            <polygon points="318,92 370,92 370,100 318,100" />
-            <polygon points="384,40 392,40 392,100 384,100" />
-            <polygon points="542,40 550,40 550,100 542,100" />
-            <polygon points="542,40 594,40 594,48 542,48" />
-            <polygon points="542,66 588,66 588,74 542,74" />
-            <polygon points="542,92 594,92 594,100 542,100" />
-          </g>
-          <path d="M229.5 44H262A12 12 0 0 1 274 56V60A12 12 0 0 1 262 72H229.5" fill="none" strokeWidth="8" />
-          <path d="M391.5 44H428A16 16 0 0 1 444 60V80A16 16 0 0 1 428 96H391.5" fill="none" strokeWidth="8" />
-          <path d="M528 44H478A12 12 0 0 0 466 56V84A12 12 0 0 0 478 96H512A12 12 0 0 0 524 84V70H498" fill="none" strokeWidth="8" />
-        </g>
-        <path d="M0 87H62M532 87H594" stroke="currentColor" strokeWidth="3" />
-        <text x="297" y="94.5" textAnchor="middle" textLength="440" fontFamily="'Sora', 'Helvetica Neue', Helvetica, sans-serif" fontSize="21" fontWeight="600" fill="currentColor">
+      <Mark height={height} />
+      <svg className="wordmark" width={(word * 268) / 36} height={word} viewBox="3 0 268 36" aria-hidden="true" style={{ flexShrink: "0" }}>
+        <path d={WORD_PATH} fill="currentColor" />
+        <path d="M3 31.2H31M243 31.2H271" stroke="currentColor" strokeWidth="1.1" />
+        <text x="137" y="33.9" textAnchor="middle" textLength="198" fontFamily="'Sora', 'Helvetica Neue', Helvetica, sans-serif" fontSize="7.7" fontWeight="600" fill="currentColor">
           SNAP IT. PROTECT IT. OWN IT.
         </text>
       </svg>

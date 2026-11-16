@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { Icon, SHIPROCKET_URL } from "./ui.jsx";
+import { Mark } from "../components/Logo.jsx";
 import { supabase } from "./db.js";
 import "./admin.css";
 
@@ -45,7 +46,7 @@ export default function AdminLayout() {
     <div className="se-root se-font adm">
       <aside className="adm-side">
         <Link to="/admin" className="adm-brand" aria-label="SnapEdge admin">
-          <span className="adm-logo">SE</span>
+          <span className="adm-logo"><Mark height={13} /></span>
           <span className="adm-brand-text">
             SNAP EDGE
             <small>Admin</small>
@@ -88,7 +89,7 @@ function Gate({ title, children }) {
   return (
     <div className="se-root se-font adm-gate">
       <div className="adm-card adm-gate-card">
-        <span className="adm-logo">SE</span>
+        <span className="adm-logo"><Mark height={13} /></span>
         <h1>{title}</h1>
         <div className="adm-gate-body">{children}</div>
       </div>
@@ -113,7 +114,7 @@ function SignIn() {
   return (
     <div className="se-root se-font adm-gate">
       <form className="adm-card adm-gate-card" onSubmit={submit}>
-        <span className="adm-logo">SE</span>
+        <span className="adm-logo"><Mark height={13} /></span>
         <h1>Sign in to SnapEdge admin</h1>
         <label className="adm-field">
           <span>Email</span>
